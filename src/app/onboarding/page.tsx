@@ -11,9 +11,13 @@ import {
   Code, 
   Clock, 
   Globe, 
-  CheckCircle2,
-  Plus,
-  Trash2
+  CheckCircle2, 
+  Plus, 
+  Trash2,
+  Sprout,
+  HeartPulse,
+  Palette,
+  Laptop
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,15 +27,17 @@ import { useAuth } from "@/lib/context/AuthContext";
 
 interface TeachingSkillItem {
   name: string;
+  pillar: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES";
   category: string;
-  proficiency: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  proficiency: "BEGINNER" | "INTERMEDIATE" | "EXPERIENCED";
   yearsExperience: number;
 }
 
 interface LearningSkillItem {
   name: string;
+  pillar: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES";
   category: string;
-  targetProficiency: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  targetProficiency: "BEGINNER" | "INTERMEDIATE" | "EXPERIENCED";
 }
 
 export default function OnboardingPage() {
@@ -41,28 +47,41 @@ export default function OnboardingPage() {
 
   // Step 1: Teaching Skills
   const [teachingSkills, setTeachingSkills] = useState<TeachingSkillItem[]>([
-    { name: "Next.js & React", category: "Web Dev", proficiency: "ADVANCED", yearsExperience: 2 },
+    {
+      name: "Watercolor Landscape Painting & Washes",
+      pillar: "CREATIVE_PRACTICAL",
+      category: "Drawing & Fine Arts",
+      proficiency: "EXPERIENCED",
+      yearsExperience: 8,
+    },
   ]);
   const [newTeachSkill, setNewTeachSkill] = useState("");
-  const [newTeachCategory, setNewTeachCategory] = useState("Web Dev");
-  const [newTeachLevel, setNewTeachLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">("INTERMEDIATE");
+  const [newTeachPillar, setNewTeachPillar] = useState<TeachingSkillItem["pillar"]>("CREATIVE_PRACTICAL");
+  const [newTeachCategory, setNewTeachCategory] = useState("Drawing & Fine Arts");
+  const [newTeachLevel, setNewTeachLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "EXPERIENCED">("EXPERIENCED");
 
   // Step 2: Learning Skills
   const [learningSkills, setLearningSkills] = useState<LearningSkillItem[]>([
-    { name: "C++ Data Structures & Algorithms", category: "DSA", targetProficiency: "ADVANCED" },
+    {
+      name: "Morning Hatha Yoga & Posture",
+      pillar: "HEALTH_WELLNESS",
+      category: "Health & Fitness",
+      targetProficiency: "BEGINNER",
+    },
   ]);
   const [newLearnSkill, setNewLearnSkill] = useState("");
-  const [newLearnCategory, setNewLearnCategory] = useState("DSA");
-  const [newLearnLevel, setNewLearnLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">("ADVANCED");
+  const [newLearnPillar, setNewLearnPillar] = useState<LearningSkillItem["pillar"]>("HEALTH_WELLNESS");
+  const [newLearnCategory, setNewLearnCategory] = useState("Health & Fitness");
+  const [newLearnLevel, setNewLearnLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "EXPERIENCED">("BEGINNER");
 
   // Step 3: Availability & Mode
-  const [mode, setMode] = useState<"ONLINE" | "HYBRID" | "OFFLINE">("HYBRID");
-  const [selectedDays, setSelectedDays] = useState<string[]>(["Tuesday", "Thursday", "Saturday"]);
+  const [mode, setMode] = useState<"ONLINE" | "HYBRID" | "IN_PERSON">("HYBRID");
+  const [selectedDays, setSelectedDays] = useState<string[]>(["Saturday", "Sunday", "Wednesday"]);
 
   // Step 4: Languages & Bio
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English", "Hindi"]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English", "Hindi", "Marathi"]);
   const [bio, setBio] = useState(
-    currentUser?.bio || "Excited to share my knowledge and collaborate on cool engineering projects!"
+    currentUser?.bio || "Passionate about sharing my skills and learning practical crafts from neighbors!"
   );
 
   const addTeachingSkill = () => {
@@ -71,9 +90,10 @@ export default function OnboardingPage() {
       ...teachingSkills,
       {
         name: newTeachSkill.trim(),
+        pillar: newTeachPillar,
         category: newTeachCategory,
         proficiency: newTeachLevel,
-        yearsExperience: 1,
+        yearsExperience: 2,
       },
     ]);
     setNewTeachSkill("");
@@ -89,6 +109,7 @@ export default function OnboardingPage() {
       ...learningSkills,
       {
         name: newLearnSkill.trim(),
+        pillar: newLearnPillar,
         category: newLearnCategory,
         targetProficiency: newLearnLevel,
       },
@@ -126,19 +147,19 @@ export default function OnboardingPage() {
       {/* Progress Bar & Header */}
       <div className="mb-8 text-center">
         <Badge variant="burgundy" className="mb-2">
-          Step {step} of 4: Profile Calibration
+          Step {step} of 4: Community Profile Calibration
         </Badge>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-heading">
-          {step === 1 && "What Skills Can You Teach?"}
+          {step === 1 && "What Can You Teach or Share?"}
           {step === 2 && "What Do You Want to Learn?"}
-          {step === 3 && "Availability & Learning Mode"}
-          {step === 4 && "Languages & Peer Introduction"}
+          {step === 3 && "Availability & Exchange Mode"}
+          {step === 4 && "Spoken Languages & Introduction"}
         </h1>
         <p className="mt-2 text-xs sm:text-sm text-slate-muted">
-          {step === 1 && "List the technologies, concepts, or tools you feel confident mentoring peers in."}
-          {step === 2 && "Pick the topics you want to conquer this semester through 1-on-1 exchanges."}
-          {step === 3 && "Help our matching algorithm propose compatible meeting slots."}
-          {step === 4 && "Finalize your profile details and claim your 50 Welcome Skill Points."}
+          {step === 1 && "Share your crafts, hobbies, wellness habits, or professional skills."}
+          {step === 2 && "Pick what you want to discover through 1-on-1 swaps with neighbors."}
+          {step === 3 && "Choose whether you prefer virtual video or local neighborhood meetups."}
+          {step === 4 && "Finalize your profile and claim your 50 Community Skill Points."}
         </p>
 
         {/* 4-Step Progress Indicator */}
@@ -156,18 +177,18 @@ export default function OnboardingPage() {
 
       {/* Card Content per Step */}
       <Card className="p-6 sm:p-8">
-        {/* STEP 1 */}
+        {/* STEP 1: Teaching Skills */}
         {step === 1 && (
           <div className="space-y-6">
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block">
-                Active Skills You Can Teach ({teachingSkills.length})
+                Active Skills You Can Share ({teachingSkills.length})
               </label>
 
               {teachingSkills.map((sk, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 rounded-xl bg-cream-100 border border-cream-200"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-cream-100 border border-cream-200"
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-burgundy-100 text-burgundy-700 flex items-center justify-center font-bold text-xs">
@@ -191,26 +212,31 @@ export default function OnboardingPage() {
             {/* Add New Skill Form */}
             <div className="p-4 rounded-2xl border border-dashed border-burgundy-300 bg-burgundy-50/30 space-y-3">
               <span className="text-xs font-bold text-burgundy-800 block">
-                + Add Another Teaching Skill
+                + Add Another Skill You Can Teach
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Input
-                  placeholder="e.g. Docker, Python, Figma"
+                  placeholder="e.g. Yoga, Sourdough Baking, Excel, Guitar"
                   value={newTeachSkill}
                   onChange={(e) => setNewTeachSkill(e.target.value)}
                   className="sm:col-span-1 text-xs"
                 />
                 <select
-                  value={newTeachCategory}
-                  onChange={(e) => setNewTeachCategory(e.target.value)}
+                  value={newTeachPillar}
+                  onChange={(e) => {
+                    const val = e.target.value as any;
+                    setNewTeachPillar(val);
+                    if (val === "TECH_PROFESSIONAL") setNewTeachCategory("Productivity & Tech");
+                    if (val === "HEALTH_WELLNESS") setNewTeachCategory("Fitness & Mindfulness");
+                    if (val === "CREATIVE_PRACTICAL") setNewTeachCategory("Culinary, Craft & Garden");
+                    if (val === "ACADEMIC_LANGUAGES") setNewTeachCategory("Languages & Communication");
+                  }}
                   className="h-11 rounded-xl border border-[#EDE7DE] bg-white px-3 text-xs text-slate-heading"
                 >
-                  <option value="Web Dev">Web Dev</option>
-                  <option value="DSA">DSA / Algorithms</option>
-                  <option value="AI/ML">AI / Machine Learning</option>
-                  <option value="Design">UI/UX & Design</option>
-                  <option value="Core Eng">Core Eng / Systems</option>
-                  <option value="DevOps">DevOps / Cloud</option>
+                  <option value="CREATIVE_PRACTICAL">Pillar: Creative & Practical</option>
+                  <option value="HEALTH_WELLNESS">Pillar: Health & Wellness</option>
+                  <option value="TECH_PROFESSIONAL">Pillar: Tech & Professional</option>
+                  <option value="ACADEMIC_LANGUAGES">Pillar: Academic & Languages</option>
                 </select>
                 <select
                   value={newTeachLevel}
@@ -219,7 +245,7 @@ export default function OnboardingPage() {
                 >
                   <option value="BEGINNER">Proficiency: Beginner</option>
                   <option value="INTERMEDIATE">Proficiency: Intermediate</option>
-                  <option value="ADVANCED">Proficiency: Advanced</option>
+                  <option value="EXPERIENCED">Proficiency: Experienced</option>
                 </select>
               </div>
               <Button
@@ -230,24 +256,24 @@ export default function OnboardingPage() {
                 className="w-full justify-center gap-1.5"
               >
                 <Plus className="h-4 w-4" />
-                Add Skill to Portfolio
+                Add Skill to My Profile
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 2 */}
+        {/* STEP 2: Learning Skills */}
         {step === 2 && (
           <div className="space-y-6">
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block">
-                Skills You Want to Master ({learningSkills.length})
+                Skills You Want to Learn ({learningSkills.length})
               </label>
 
               {learningSkills.map((sk, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/60 border border-emerald-200"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200"
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
@@ -271,25 +297,31 @@ export default function OnboardingPage() {
             {/* Add New Learning Skill */}
             <div className="p-4 rounded-2xl border border-dashed border-emerald-300 bg-emerald-50/30 space-y-3">
               <span className="text-xs font-bold text-emerald-800 block">
-                + Add Target Learning Topic
+                + Add What You Wish to Learn
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Input
-                  placeholder="e.g. Graph Algorithms, Three.js"
+                  placeholder="e.g. Spanish, First Aid, Gardening, Python"
                   value={newLearnSkill}
                   onChange={(e) => setNewLearnSkill(e.target.value)}
                   className="sm:col-span-1 text-xs"
                 />
                 <select
-                  value={newLearnCategory}
-                  onChange={(e) => setNewLearnCategory(e.target.value)}
+                  value={newLearnPillar}
+                  onChange={(e) => {
+                    const val = e.target.value as any;
+                    setNewLearnPillar(val);
+                    if (val === "TECH_PROFESSIONAL") setNewLearnCategory("Productivity & Tech");
+                    if (val === "HEALTH_WELLNESS") setNewLearnCategory("Fitness & Mindfulness");
+                    if (val === "CREATIVE_PRACTICAL") setNewLearnCategory("Culinary, Craft & Garden");
+                    if (val === "ACADEMIC_LANGUAGES") setNewLearnCategory("Languages & Communication");
+                  }}
                   className="h-11 rounded-xl border border-[#EDE7DE] bg-white px-3 text-xs text-slate-heading"
                 >
-                  <option value="DSA">DSA / Algorithms</option>
-                  <option value="Web Dev">Web Dev</option>
-                  <option value="AI/ML">AI / Machine Learning</option>
-                  <option value="Design">UI/UX & Design</option>
-                  <option value="Core Eng">Core Eng / Systems</option>
+                  <option value="TECH_PROFESSIONAL">Pillar: Tech & Professional</option>
+                  <option value="HEALTH_WELLNESS">Pillar: Health & Wellness</option>
+                  <option value="CREATIVE_PRACTICAL">Pillar: Creative & Practical</option>
+                  <option value="ACADEMIC_LANGUAGES">Pillar: Academic & Languages</option>
                 </select>
                 <select
                   value={newLearnLevel}
@@ -298,7 +330,7 @@ export default function OnboardingPage() {
                 >
                   <option value="BEGINNER">Target: Beginner</option>
                   <option value="INTERMEDIATE">Target: Intermediate</option>
-                  <option value="ADVANCED">Target: Advanced</option>
+                  <option value="EXPERIENCED">Target: Experienced</option>
                 </select>
               </div>
               <Button
@@ -309,24 +341,24 @@ export default function OnboardingPage() {
                 className="w-full justify-center gap-1.5 text-emerald-800 border-emerald-300 hover:bg-emerald-50"
               >
                 <Plus className="h-4 w-4" />
-                Add to Learning Goals
+                Add to Learning Wishlist
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 3 */}
+        {/* STEP 3: Mode & Availability */}
         {step === 3 && (
           <div className="space-y-6">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block mb-2">
-                Preferred Learning Mode
+                Preferred Exchange Mode
               </label>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { id: "ONLINE", title: "Online", desc: "Virtual Room & Video" },
-                  { id: "HYBRID", title: "Hybrid", desc: "Online or In-Person" },
-                  { id: "OFFLINE", title: "On-Campus", desc: "Library / College Canteen" },
+                  { id: "IN_PERSON", title: "In-Person", desc: "Local Neighborhood / Parks / Cafes" },
+                  { id: "HYBRID", title: "Hybrid", desc: "Online or In-Person as mutually agreed" },
+                  { id: "ONLINE", title: "Online", desc: "Virtual Room Video & Audio" },
                 ].map((m) => (
                   <button
                     key={m.id}
@@ -347,7 +379,7 @@ export default function OnboardingPage() {
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block mb-2">
-                Your Free Days for 1:1 Sessions
+                Your Typical Free Days
               </label>
               <div className="flex flex-wrap gap-2">
                 {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((d) => {
@@ -368,22 +400,19 @@ export default function OnboardingPage() {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-slate-muted mt-2">
-                You can specify specific hour blocks later in individual exchange requests.
-              </p>
             </div>
           </div>
         )}
 
-        {/* STEP 4 */}
+        {/* STEP 4: Languages & Bio */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block mb-2">
-                Spoken Languages (For smooth communication)
+                Spoken Languages
               </label>
               <div className="flex flex-wrap gap-2">
-                {["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "Kannada", "Bengali"].map((l) => {
+                {["English", "Hindi", "Marathi", "Gujarati", "Bengali", "Tamil", "Telugu", "Kannada", "Urdu", "Punjabi"].map((l) => {
                   const isSelected = selectedLanguages.includes(l);
                   return (
                     <button
@@ -405,13 +434,13 @@ export default function OnboardingPage() {
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block mb-1.5">
-                Peer Bio & What Excites You
+                Neighborhood Introduction Bio
               </label>
               <textarea
                 rows={3}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Briefly describe your engineering interests and what you're currently building..."
+                placeholder="Share a little about yourself, your hobbies, and what kind of exchanges excite you..."
                 className="w-full rounded-2xl border border-[#EDE7DE] p-3 text-xs sm:text-sm text-slate-heading focus:border-burgundy-600 focus:outline-none"
               />
             </div>
@@ -419,7 +448,7 @@ export default function OnboardingPage() {
             <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-emerald-800">Ready to activate your profile?</p>
-                <p className="text-[11px] text-emerald-700">50 Free Welcome Skill Points will be deposited immediately.</p>
+                <p className="text-[11px] text-emerald-700">50 Community Skill Points will be deposited to your wallet.</p>
               </div>
               <Badge variant="success">+50 Points</Badge>
             </div>
@@ -460,7 +489,7 @@ export default function OnboardingPage() {
               className="gap-2 bg-burgundy-600"
             >
               <Sparkles className="h-4 w-4 text-peach-200" />
-              Finish Setup & Launch Dashboard
+              Finish Setup & Open Community Dashboard
             </Button>
           )}
         </div>

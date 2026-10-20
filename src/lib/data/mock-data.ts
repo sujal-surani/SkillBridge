@@ -1,28 +1,30 @@
-export interface StudentProfile {
+export interface CommunityMember {
   id: string;
   fullName: string;
+  age: number;
   avatarUrl: string;
   email: string;
-  collegeName: string;
-  major: string;
-  graduationYear: number;
-  bio: string;
+  occupationOrInterest: string; // e.g. "Fine Artist & Watercolorist", "Terrace Gardening Enthusiast", "Yoga Coach"
+  neighborhood: string;
   city: string;
-  modePreference: "ONLINE" | "HYBRID" | "OFFLINE";
-  languages: string[];
+  modePreference: "ONLINE" | "HYBRID" | "IN_PERSON";
+  spokenLanguages: string[];
+  bio: string;
   skillPointsBalance: number;
   averageRating: number;
   totalSessions: number;
   teachingSkills: {
     name: string;
+    pillar: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES";
     category: string;
-    proficiency: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+    proficiency: "BEGINNER" | "INTERMEDIATE" | "EXPERIENCED";
     yearsExperience: number;
   }[];
   learningSkills: {
     name: string;
+    pillar: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES";
     category: string;
-    targetProficiency: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+    targetProficiency: "BEGINNER" | "INTERMEDIATE" | "EXPERIENCED";
   }[];
   availability: {
     day: string;
@@ -30,191 +32,250 @@ export interface StudentProfile {
   }[];
 }
 
-export const INITIAL_STUDENTS: StudentProfile[] = [
+export const INITIAL_MEMBERS: CommunityMember[] = [
   {
-    id: "student-1",
-    fullName: "Aarav Sharma",
-    avatarUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256",
-    email: "aarav.sharma@cse.iitb.ac.in",
-    collegeName: "IIT Bombay",
-    major: "Computer Science & Engineering",
-    graduationYear: 2026,
-    bio: "Passionate about full-stack architectures and modern web tools. Built two production Next.js applications and looking for a peer to master Advanced Dynamic Programming and Graph Algorithms together.",
-    city: "Mumbai, MH",
-    modePreference: "HYBRID",
-    languages: ["English", "Hindi"],
-    skillPointsBalance: 320,
-    averageRating: 4.9,
-    totalSessions: 14,
-    teachingSkills: [
-      { name: "Next.js & React", category: "Web Dev", proficiency: "ADVANCED", yearsExperience: 2 },
-      { name: "Tailwind CSS & UI Systems", category: "Web Dev", proficiency: "ADVANCED", yearsExperience: 2 },
-      { name: "TypeScript", category: "Web Dev", proficiency: "INTERMEDIATE", yearsExperience: 1 },
-    ],
-    learningSkills: [
-      { name: "C++ Data Structures & Algorithms", category: "DSA", targetProficiency: "ADVANCED" },
-      { name: "System Design Fundamentals", category: "Core Eng", targetProficiency: "INTERMEDIATE" },
-    ],
-    availability: [
-      { day: "Tuesday", timeSlots: ["17:00 - 19:00"] },
-      { day: "Thursday", timeSlots: ["18:00 - 20:00"] },
-      { day: "Saturday", timeSlots: ["10:00 - 13:00"] },
-    ],
-  },
-  {
-    id: "student-2",
-    fullName: "Priya Patel",
+    id: "member-1",
+    fullName: "Pooja Sharma",
+    age: 34,
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-    email: "priya.patel@vjti.ac.in",
-    collegeName: "VJTI Mumbai",
-    major: "Information Technology",
-    graduationYear: 2026,
-    bio: "Solved 450+ LeetCode problems in C++. Knight on LeetCode. Wanting to learn modern frontend web development and UI/UX design to build my own developer portfolio and hackathon projects.",
-    city: "Mumbai, MH",
+    email: "pooja.artist@gmail.com",
+    occupationOrInterest: "Fine Artist & Watercolor Instructor",
+    neighborhood: "C-Scheme",
+    city: "Jaipur, RJ",
     modePreference: "HYBRID",
-    languages: ["English", "Hindi", "Gujarati"],
-    skillPointsBalance: 460,
-    averageRating: 5.0,
+    spokenLanguages: ["English", "Hindi"],
+    bio: "Practicing watercolor artist, plein-air sketcher, and botanical illustrator for 10+ years. I love guiding complete beginners through watercolor washes, color mixing, and pencil perspective drawing. Looking for a neighbor to teach me morning Hatha Yoga and healthy posture habits for long desk/easel hours.",
+    skillPointsBalance: 420,
+    averageRating: 4.96,
     totalSessions: 22,
     teachingSkills: [
-      { name: "C++ Data Structures & Algorithms", category: "DSA", proficiency: "ADVANCED", yearsExperience: 3 },
-      { name: "Graph Algorithms & DP", category: "DSA", proficiency: "ADVANCED", yearsExperience: 2 },
-      { name: "Object Oriented Design", category: "Core Eng", proficiency: "INTERMEDIATE", yearsExperience: 2 },
+      { name: "Watercolor Landscape Painting & Washes", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", proficiency: "EXPERIENCED", yearsExperience: 10 },
+      { name: "Pencil Sketching & Botanical Illustration", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", proficiency: "EXPERIENCED", yearsExperience: 8 },
     ],
     learningSkills: [
-      { name: "Next.js & React", category: "Web Dev", targetProficiency: "INTERMEDIATE" },
-      { name: "Figma & UI/UX Design", category: "Design", targetProficiency: "BEGINNER" },
+      { name: "Morning Hatha Yoga & Posture", pillar: "HEALTH_WELLNESS", category: "Health & Fitness", targetProficiency: "BEGINNER" },
+      { name: "Healthy Balanced Meal Prep", pillar: "HEALTH_WELLNESS", category: "Nutrition & Health", targetProficiency: "BEGINNER" },
     ],
     availability: [
-      { day: "Tuesday", timeSlots: ["17:00 - 19:00"] },
-      { day: "Friday", timeSlots: ["16:00 - 18:00"] },
+      { day: "Tuesday", timeSlots: ["16:00 - 18:30"] },
+      { day: "Thursday", timeSlots: ["16:00 - 18:30"] },
       { day: "Saturday", timeSlots: ["10:00 - 13:00"] },
     ],
   },
   {
-    id: "student-3",
-    fullName: "Rohan Verma",
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256",
-    email: "rohan.verma@pilani.bits-pilani.ac.in",
-    collegeName: "BITS Pilani",
-    major: "Electrical & Electronics",
-    graduationYear: 2025,
-    bio: "Deep Learning enthusiast working on PyTorch computer vision models. Need someone to help me containerize microservices using Docker and set up PostgreSQL backend pipelines.",
-    city: "Pilani, RJ",
-    modePreference: "ONLINE",
-    languages: ["English", "Hindi"],
-    skillPointsBalance: 290,
-    averageRating: 4.8,
-    totalSessions: 11,
+    id: "member-2",
+    fullName: "Kavita Nair",
+    age: 39,
+    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
+    email: "kavita.yoga@gmail.com",
+    occupationOrInterest: "Yoga Instructor & Holistic Wellness Coach",
+    neighborhood: "Panampilly Nagar",
+    city: "Kochi, KL",
+    modePreference: "HYBRID",
+    spokenLanguages: ["English", "Malayalam", "Hindi"],
+    bio: "Certified 500-hour Yoga Alliance instructor focusing on restorative Hatha Yoga, gentle spine alignment, and stress-reduction breathwork. I love teaching everyday working adults and elders how to move pain-free. Wanting to learn watercolor painting and pencil sketching as a creative mindful hobby.",
+    skillPointsBalance: 460,
+    averageRating: 5.0,
+    totalSessions: 28,
     teachingSkills: [
-      { name: "Machine Learning with PyTorch", category: "AI/ML", proficiency: "ADVANCED", yearsExperience: 2 },
-      { name: "Python for Data Science", category: "AI/ML", proficiency: "ADVANCED", yearsExperience: 3 },
+      { name: "Morning Hatha Yoga & Posture", pillar: "HEALTH_WELLNESS", category: "Health & Fitness", proficiency: "EXPERIENCED", yearsExperience: 11 },
+      { name: "Pranayama Breathwork & Meditation", pillar: "HEALTH_WELLNESS", category: "Health & Fitness", proficiency: "EXPERIENCED", yearsExperience: 9 },
     ],
     learningSkills: [
-      { name: "Docker & Containerization", category: "DevOps", targetProficiency: "INTERMEDIATE" },
-      { name: "PostgreSQL & Prisma", category: "Web Dev", targetProficiency: "INTERMEDIATE" },
+      { name: "Watercolor Landscape Painting & Washes", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", targetProficiency: "BEGINNER" },
+      { name: "Organic Terrace Vegetable Gardening", pillar: "CREATIVE_PRACTICAL", category: "Gardening & Sustainability", targetProficiency: "BEGINNER" },
     ],
     availability: [
-      { day: "Monday", timeSlots: ["19:00 - 21:00"] },
-      { day: "Wednesday", timeSlots: ["19:00 - 21:00"] },
-      { day: "Sunday", timeSlots: ["14:00 - 17:00"] },
+      { day: "Monday", timeSlots: ["07:00 - 09:00"] },
+      { day: "Wednesday", timeSlots: ["07:00 - 09:00"] },
+      { day: "Saturday", timeSlots: ["10:00 - 13:00"] },
     ],
   },
   {
-    id: "student-4",
-    fullName: "Ananya Iyer",
-    avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256",
-    email: "ananya.iyer@coep.ac.in",
-    collegeName: "COEP Pune",
-    major: "Computer Engineering",
-    graduationYear: 2026,
-    bio: "Lead UI/UX Designer for college technical festival. Designed 10+ Figma web & mobile kits. Eager to understand how to turn my designs into interactive cross-platform mobile apps using Flutter.",
+    id: "member-3",
+    fullName: "Ramesh Kulkarni",
+    age: 45,
+    avatarUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
+    email: "ramesh.kulkarni@gmail.com",
+    occupationOrInterest: "Organic Terrace Gardening Enthusiast",
+    neighborhood: "Koregaon Park",
     city: "Pune, MH",
-    modePreference: "ONLINE",
-    languages: ["English", "Hindi", "Marathi", "Tamil"],
+    modePreference: "HYBRID",
+    spokenLanguages: ["English", "Hindi", "Marathi"],
+    bio: "Have cultivated organic terrace tomatoes, leafy greens, and compost bins for 8+ years. Passionate about teaching potting soil ratios, natural neem pest sprays, and kitchen composting. Wanting to learn acoustic guitar chords so I can sing bhajans and acoustic melodies with my family on weekends.",
     skillPointsBalance: 390,
     averageRating: 4.95,
     totalSessions: 18,
     teachingSkills: [
-      { name: "Figma & UI/UX Design", category: "Design", proficiency: "ADVANCED", yearsExperience: 3 },
-      { name: "Design Systems & Prototyping", category: "Design", proficiency: "ADVANCED", yearsExperience: 2 },
+      { name: "Organic Terrace Vegetable Gardening", pillar: "CREATIVE_PRACTICAL", category: "Gardening & Sustainability", proficiency: "EXPERIENCED", yearsExperience: 8 },
+      { name: "Kitchen Waste Composting & Soil Care", pillar: "CREATIVE_PRACTICAL", category: "Gardening & Sustainability", proficiency: "EXPERIENCED", yearsExperience: 6 },
     ],
     learningSkills: [
-      { name: "Flutter Mobile Development", category: "Mobile Dev", targetProficiency: "BEGINNER" },
-      { name: "Tailwind CSS & UI Systems", category: "Web Dev", targetProficiency: "INTERMEDIATE" },
+      { name: "Acoustic Guitar Basics & Chords", pillar: "CREATIVE_PRACTICAL", category: "Music & Performing Arts", targetProficiency: "BEGINNER" },
+      { name: "Smartphone Digital Banking Safety", pillar: "TECH_PROFESSIONAL", category: "Everyday Tech", targetProficiency: "BEGINNER" },
     ],
     availability: [
-      { day: "Wednesday", timeSlots: ["18:00 - 20:00"] },
-      { day: "Saturday", timeSlots: ["15:00 - 18:00"] },
-      { day: "Sunday", timeSlots: ["11:00 - 14:00"] },
+      { day: "Saturday", timeSlots: ["09:00 - 12:00"] },
+      { day: "Sunday", timeSlots: ["09:00 - 12:00"] },
+      { day: "Wednesday", timeSlots: ["18:00 - 19:30"] },
     ],
   },
   {
-    id: "student-5",
-    fullName: "Tanvi Deshmukh",
-    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
-    email: "tanvi.deshmukh@dtu.ac.in",
-    collegeName: "DTU Delhi",
-    major: "Software Engineering",
-    graduationYear: 2027,
-    bio: "Java Spring Boot developer with an obsession for clean REST APIs and database schema normalization. Exploring OpenCV and Computer Vision basics for an upcoming semester robotics project.",
-    city: "New Delhi, DL",
-    modePreference: "ONLINE",
-    languages: ["English", "Hindi"],
-    skillPointsBalance: 210,
-    averageRating: 4.75,
-    totalSessions: 8,
+    id: "member-4",
+    fullName: "Meera Joshi",
+    age: 52,
+    avatarUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256",
+    email: "meera.bakes@gmail.com",
+    occupationOrInterest: "Artisanal Baker & Traditional Culinary Mentor",
+    neighborhood: "Bandra West",
+    city: "Mumbai, MH",
+    modePreference: "HYBRID",
+    spokenLanguages: ["English", "Hindi", "Marathi", "Gujarati"],
+    bio: "Baking sourdough bread, whole-wheat pita, and authentic regional Indian dishes for 25+ years. I love hosting small kitchen classes for neighbors. Seeking someone patient to teach me Canva design and smartphone photography so I can publish my handwritten recipe book.",
+    skillPointsBalance: 510,
+    averageRating: 4.98,
+    totalSessions: 29,
     teachingSkills: [
-      { name: "Java Spring Boot", category: "Web Dev", proficiency: "ADVANCED", yearsExperience: 2 },
-      { name: "PostgreSQL & Relational DBs", category: "Database", proficiency: "INTERMEDIATE", yearsExperience: 2 },
+      { name: "Artisanal Sourdough & Baking", pillar: "CREATIVE_PRACTICAL", category: "Culinary & Baking", proficiency: "EXPERIENCED", yearsExperience: 16 },
+      { name: "Traditional Regional Cooking & Ferments", pillar: "CREATIVE_PRACTICAL", category: "Culinary & Baking", proficiency: "EXPERIENCED", yearsExperience: 25 },
     ],
     learningSkills: [
-      { name: "Computer Vision & OpenCV", category: "AI/ML", targetProficiency: "BEGINNER" },
-      { name: "Python for Data Science", category: "AI/ML", targetProficiency: "INTERMEDIATE" },
+      { name: "Canva Design & Recipe Card Layouts", pillar: "TECH_PROFESSIONAL", category: "Design & Media", targetProficiency: "BEGINNER" },
+      { name: "Pencil Sketching & Botanical Illustration", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", targetProficiency: "BEGINNER" },
     ],
     availability: [
-      { day: "Monday", timeSlots: ["17:00 - 19:00"] },
-      { day: "Thursday", timeSlots: ["17:00 - 19:00"] },
+      { day: "Tuesday", timeSlots: ["15:00 - 18:00"] },
+      { day: "Thursday", timeSlots: ["15:00 - 18:00"] },
+      { day: "Saturday", timeSlots: ["15:00 - 18:00"] },
     ],
   },
   {
-    id: "student-6",
-    fullName: "Kabir Mehta",
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256",
-    email: "kabir.mehta@rvce.edu.in",
-    collegeName: "RVCE Bengaluru",
-    major: "Information Science",
-    graduationYear: 2026,
-    bio: "Backend developer writing Go microservices and Kubernetes manifests. Love distributed systems. Looking for a peer to explain React state management and Tailwind CSS for hackathon UIs.",
+    id: "member-5",
+    fullName: "Aisha Siddiqui",
+    age: 26,
+    avatarUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=256",
+    email: "aisha.nutrition@gmail.com",
+    occupationOrInterest: "Clinical Nutritionist & Emergency First Aid Volunteer",
+    neighborhood: "Banjara Hills",
+    city: "Hyderabad, TS",
+    modePreference: "ONLINE",
+    spokenLanguages: ["English", "Hindi", "Urdu", "Telugu"],
+    bio: "Nutrition counselor and Red Cross volunteer certified in CPR and First Aid. I teach neighbors practical blood-sugar management, heart-healthy meal planning, and burn/choking management. In exchange, I want to learn French for my upcoming travel and basic watercolor painting.",
+    skillPointsBalance: 375,
+    averageRating: 4.92,
+    totalSessions: 19,
+    teachingSkills: [
+      { name: "First Aid Basics & Emergency CPR", pillar: "HEALTH_WELLNESS", category: "Health & Safety", proficiency: "EXPERIENCED", yearsExperience: 4 },
+      { name: "Healthy Balanced Meal Prep", pillar: "HEALTH_WELLNESS", category: "Nutrition & Health", proficiency: "EXPERIENCED", yearsExperience: 5 },
+    ],
+    learningSkills: [
+      { name: "Conversational French for Travel", pillar: "ACADEMIC_LANGUAGES", category: "Languages & Culture", targetProficiency: "BEGINNER" },
+      { name: "Watercolor Landscape Painting & Washes", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", targetProficiency: "BEGINNER" },
+    ],
+    availability: [
+      { day: "Monday", timeSlots: ["19:00 - 21:00"] },
+      { day: "Wednesday", timeSlots: ["19:00 - 21:00"] },
+      { day: "Sunday", timeSlots: ["16:00 - 19:00"] },
+    ],
+  },
+  {
+    id: "member-6",
+    fullName: "Siddharth Roy",
+    age: 29,
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256",
+    email: "siddharth.music@gmail.com",
+    occupationOrInterest: "Acoustic Guitarist & Songwriter",
+    neighborhood: "Indiranagar",
     city: "Bengaluru, KA",
     modePreference: "HYBRID",
-    languages: ["English", "Hindi", "Kannada"],
-    skillPointsBalance: 340,
+    spokenLanguages: ["English", "Hindi", "Bengali"],
+    bio: "Fingerstyle guitarist and vocal coach playing for 9 years. Love demystifying guitar chords, strumming rhythms, and ear training for total novices. Looking for someone to teach me watercolor sketching and terrace gardening so I can relax after long studio sessions.",
+    skillPointsBalance: 330,
     averageRating: 4.88,
     totalSessions: 15,
     teachingSkills: [
-      { name: "Golang Microservices", category: "Core Eng", proficiency: "ADVANCED", yearsExperience: 2 },
-      { name: "Docker & Containerization", category: "DevOps", proficiency: "INTERMEDIATE", yearsExperience: 1 },
+      { name: "Acoustic Guitar Basics & Chords", pillar: "CREATIVE_PRACTICAL", category: "Music & Performing Arts", proficiency: "EXPERIENCED", yearsExperience: 9 },
+      { name: "Vocal Warmups & Pitch Training", pillar: "CREATIVE_PRACTICAL", category: "Music & Performing Arts", proficiency: "EXPERIENCED", yearsExperience: 6 },
     ],
     learningSkills: [
-      { name: "Next.js & React", category: "Web Dev", targetProficiency: "BEGINNER" },
-      { name: "Tailwind CSS & UI Systems", category: "Web Dev", targetProficiency: "INTERMEDIATE" },
+      { name: "Watercolor Landscape Painting & Washes", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", targetProficiency: "BEGINNER" },
+      { name: "Organic Terrace Vegetable Gardening", pillar: "CREATIVE_PRACTICAL", category: "Gardening & Sustainability", targetProficiency: "BEGINNER" },
     ],
     availability: [
-      { day: "Tuesday", timeSlots: ["18:00 - 20:00"] },
-      { day: "Thursday", timeSlots: ["18:00 - 20:00"] },
-      { day: "Saturday", timeSlots: ["14:00 - 17:00"] },
+      { day: "Tuesday", timeSlots: ["18:30 - 20:30"] },
+      { day: "Thursday", timeSlots: ["18:30 - 20:30"] },
+      { day: "Saturday", timeSlots: ["11:00 - 14:00"] },
+    ],
+  },
+  {
+    id: "member-7",
+    fullName: "Harish Patel",
+    age: 58,
+    avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256",
+    email: "harish.patel.teacher@gmail.com",
+    occupationOrInterest: "Retired Educator & Public Speaking Coach",
+    neighborhood: "Navrangpura",
+    city: "Ahmedabad, GJ",
+    modePreference: "HYBRID",
+    spokenLanguages: ["English", "Gujarati", "Hindi"],
+    bio: "Former high school principal and Toastmasters mentor with 32 years of teaching. Love helping community members build confidence in spoken English, conversational fluency, and interview speaking. Eager to learn basic pencil drawing and organic composting.",
+    skillPointsBalance: 480,
+    averageRating: 4.97,
+    totalSessions: 31,
+    teachingSkills: [
+      { name: "Spoken English Fluency & Confidence", pillar: "ACADEMIC_LANGUAGES", category: "Languages & Speech", proficiency: "EXPERIENCED", yearsExperience: 30 },
+      { name: "Public Speaking & Storytelling", pillar: "ACADEMIC_LANGUAGES", category: "Languages & Speech", proficiency: "EXPERIENCED", yearsExperience: 25 },
+    ],
+    learningSkills: [
+      { name: "Pencil Sketching & Botanical Illustration", pillar: "CREATIVE_PRACTICAL", category: "Drawing & Fine Arts", targetProficiency: "BEGINNER" },
+      { name: "Organic Terrace Vegetable Gardening", pillar: "CREATIVE_PRACTICAL", category: "Gardening & Sustainability", targetProficiency: "BEGINNER" },
+    ],
+    availability: [
+      { day: "Monday", timeSlots: ["10:00 - 13:00"] },
+      { day: "Thursday", timeSlots: ["10:00 - 13:00"] },
+      { day: "Sunday", timeSlots: ["15:00 - 18:00"] },
+    ],
+  },
+  {
+    id: "member-8",
+    fullName: "Deepak Verma",
+    age: 31,
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256",
+    email: "deepak.diy@gmail.com",
+    occupationOrInterest: "Home DIY, Woodcraft & Repair Specialist",
+    neighborhood: "Hauz Khas",
+    city: "New Delhi, DL",
+    modePreference: "IN_PERSON",
+    spokenLanguages: ["English", "Hindi"],
+    bio: "Passionate DIY maker who can fix almost anything in a house: leaky faucets, drill anchoring, door locks, basic wiring, and wood restoration. Want to trade hands-on repair knowledge for yoga postures and spoken English practice.",
+    skillPointsBalance: 310,
+    averageRating: 4.89,
+    totalSessions: 14,
+    teachingSkills: [
+      { name: "Basic Home Electrical & Plumbing Repairs", pillar: "CREATIVE_PRACTICAL", category: "Practical Crafts & DIY", proficiency: "EXPERIENCED", yearsExperience: 7 },
+      { name: "Wood Finishing & Furniture Care", pillar: "CREATIVE_PRACTICAL", category: "Practical Crafts & DIY", proficiency: "EXPERIENCED", yearsExperience: 6 },
+    ],
+    learningSkills: [
+      { name: "Morning Hatha Yoga & Posture", pillar: "HEALTH_WELLNESS", category: "Health & Fitness", targetProficiency: "BEGINNER" },
+      { name: "Spoken English Fluency & Confidence", pillar: "ACADEMIC_LANGUAGES", category: "Languages & Speech", targetProficiency: "INTERMEDIATE" },
+    ],
+    availability: [
+      { day: "Saturday", timeSlots: ["14:00 - 18:00"] },
+      { day: "Sunday", timeSlots: ["10:00 - 14:00"] },
     ],
   },
 ];
 
-export interface CommunityDoubt {
+export interface CommunityQuestion {
   id: string;
   title: string;
   content: string;
   authorName: string;
-  authorCollege: string;
+  authorAge: number;
+  authorOccupation: string;
+  authorNeighborhood: string;
   authorAvatar: string;
+  pillar: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES";
   tags: string[];
   createdAt: string;
   upvotes: number;
@@ -223,7 +284,7 @@ export interface CommunityDoubt {
   replies: {
     id: string;
     authorName: string;
-    authorCollege: string;
+    authorOccupation: string;
     authorAvatar: string;
     content: string;
     createdAt: string;
@@ -232,54 +293,88 @@ export interface CommunityDoubt {
   }[];
 }
 
-export const INITIAL_DOUBTS: CommunityDoubt[] = [
+export const INITIAL_COMMUNITY_QUESTIONS: CommunityQuestion[] = [
   {
-    id: "doubt-1",
-    title: "How to conceptualize Memoization vs Tabulation in Grid Unique Paths problem?",
-    content: "I can write the recursive solution for the m x n grid unique paths problem easily, but every time I try to invert it into bottom-up DP tabulation, my 2D array indexing gets off-by-one errors. Could someone explain an intuitive mental model to transition from recurrence relation to array loop?",
-    authorName: "Tanvi Deshmukh",
-    authorCollege: "DTU Delhi",
-    authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
-    tags: ["Dynamic Programming", "C++", "DSA", "Recursion"],
-    createdAt: "3 hours ago",
-    upvotes: 14,
+    id: "q-1",
+    title: "How do I prevent 300 GSM watercolor paper from buckling when painting wet-on-wet landscapes?",
+    content: "Whenever I try to paint cloudy skies using wet-on-wet watercolor washes, my paper forms ridges and puddles the pigment unevenly even though I taped the borders down. Should I pre-stretch the sheet with water or use a stretching board?",
+    authorName: "Siddharth Roy",
+    authorAge: 29,
+    authorOccupation: "Guitarist & Beginner Watercolorist",
+    authorNeighborhood: "Indiranagar, Bengaluru",
+    authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256",
+    pillar: "CREATIVE_PRACTICAL",
+    tags: ["Drawing", "Watercolor", "Art Supplies", "Painting"],
+    createdAt: "2 hours ago",
+    upvotes: 21,
     isSolved: true,
-    repliesCount: 2,
+    repliesCount: 1,
     replies: [
       {
-        id: "reply-1",
-        authorName: "Priya Patel",
-        authorCollege: "VJTI Mumbai",
+        id: "rep-1",
+        authorName: "Pooja Sharma",
+        authorOccupation: "Watercolor Instructor (34, Jaipur)",
         authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-        content: "Great question Tanvi! The trick is to look at your base case in recursion. In recursion `f(0,0) = 1` and boundary conditions return 0. In tabulation, create a matrix `dp[m][n]`. Fill the first row and first column with 1 (because there's only 1 way to move strictly right or strictly down). Then iterate `i from 1 to m-1` and `j from 1 to n-1`, where `dp[i][j] = dp[i-1][j] + dp[i][j-1]`. Would love to hop on a 20-min session on SkillBridge if you want to walk through the visual tree together!",
-        createdAt: "2 hours ago",
+        content: "Hello Siddharth! Even 300 GSM cold-pressed paper buckles if you only wet the front side. The secret is to wet BOTH sides evenly with a flat hake brush, wait 2 minutes for the cotton fibers to expand, and then tape all 4 sides with water-activated gummed tape or heavy masking tape onto a wooden board. It will dry drum-tight without a single buckle! I'd be happy to show you my wash setup in a live 20-min session.",
+        createdAt: "1 hour ago",
         isSolution: true,
-        upvotes: 19,
+        upvotes: 27,
       },
     ],
   },
   {
-    id: "doubt-2",
-    title: "Understanding Server Actions vs API Route Handlers in Next.js 14/15 App Router",
-    content: "When should I use a Server Action (`'use server'`) inside a form submission versus writing a standard `route.ts` handler under `/api/...`? Does Server Action handle file uploads well?",
-    authorName: "Kabir Mehta",
-    authorCollege: "RVCE Bengaluru",
-    authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256",
-    tags: ["Next.js", "Web Dev", "Full-Stack", "TypeScript"],
-    createdAt: "5 hours ago",
-    upvotes: 9,
-    isSolved: false,
+    id: "q-2",
+    title: "What daily gentle yoga postures help relieve neck and lower-back stiffness for desk workers?",
+    content: "I sit for 7-8 hours a day and wake up with tension in my neck and lower back. I find forward bends painful. Can someone suggest 3 gentle daily postures that can be done without gym equipment?",
+    authorName: "Harish Patel",
+    authorAge: 58,
+    authorOccupation: "Retired Educator & Public Speaker",
+    authorNeighborhood: "Navrangpura, Ahmedabad",
+    authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256",
+    pillar: "HEALTH_WELLNESS",
+    tags: ["Health", "Yoga", "Back Pain", "Posture", "Wellness"],
+    createdAt: "3 hours ago",
+    upvotes: 19,
+    isSolved: true,
     repliesCount: 1,
     replies: [
       {
-        id: "reply-2",
-        authorName: "Aarav Sharma",
-        authorCollege: "IIT Bombay",
-        authorAvatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256",
-        content: "Rule of thumb: If it's a direct user mutation triggered from UI (like form submit, button click, like/unlike) where you want automatic cache revalidation (`revalidatePath`), use Server Actions! If it's a webhook, public endpoint, or third-party callback, use Route Handlers.",
+        id: "rep-2",
+        authorName: "Kavita Nair",
+        authorOccupation: "Hatha Yoga & Wellness Coach (39, Kochi)",
+        authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
+        content: "Namaste Harishji! Please avoid deep forward bends when your lower back is sensitive. Try: 1) Cat-Cow pose (Marjaryasana-Bitilasana) on a soft mat for 10 slow breaths. 2) Supine Figure-4 stretch lying on your back to gently release tight glutes. 3) Bhujangasana (Gentle Baby Cobra with elbows bent) to strengthen upper back muscles. Let's do a 30-minute morning session together on SkillBridge to check your alignment!",
+        createdAt: "2 hours ago",
+        isSolution: true,
+        upvotes: 23,
+      },
+    ],
+  },
+  {
+    id: "q-3",
+    title: "How to stop tomato plant leaves from turning yellow on an apartment terrace?",
+    content: "My cherry tomato plants were doing great in terracotta pots, but now the lower leaves are turning pale yellow and dropping off. Is this overwatering or lack of nutrients?",
+    authorName: "Kavita Nair",
+    authorAge: 39,
+    authorOccupation: "Yoga Coach & Balcony Gardener",
+    authorNeighborhood: "Panampilly Nagar, Kochi",
+    authorAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
+    pillar: "CREATIVE_PRACTICAL",
+    tags: ["Gardening", "Organic", "Terrace", "Plant Care"],
+    createdAt: "5 hours ago",
+    upvotes: 14,
+    isSolved: true,
+    repliesCount: 1,
+    replies: [
+      {
+        id: "rep-3",
+        authorName: "Ramesh Kulkarni",
+        authorOccupation: "Terrace Gardening Enthusiast (45, Pune)",
+        authorAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
+        content: "Hello Kavitaji! In humid weather, lower yellowing leaves usually mean waterlogging or nitrogen depletion. Top-dress with 2 fistfuls of well-rotted vermicompost, water only when top soil is dry, and trim the bottom-most 3 inches of foliage to keep leaves off damp soil.",
         createdAt: "4 hours ago",
-        isSolution: false,
-        upvotes: 12,
+        isSolution: true,
+        upvotes: 18,
       },
     ],
   },

@@ -11,38 +11,44 @@ import {
   Check, 
   X, 
   Search, 
-  Trash2, 
   TrendingUp,
   Coins,
-  GraduationCap
+  HeartHandshake,
+  MapPin,
+  Sprout
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { INITIAL_STUDENTS, StudentProfile } from "@/lib/data/mock-data";
+import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
 
 export default function AdminPage() {
-  const [students, setStudents] = useState<StudentProfile[]>(INITIAL_STUDENTS);
-  const [adminTab, setAdminTab] = useState<"users" | "skills" | "reports" | "analytics">("analytics");
+  const [members, setMembers] = useState<CommunityMember[]>(INITIAL_MEMBERS);
+  const [adminTab, setAdminTab] = useState<"analytics" | "users" | "skills" | "reports">("analytics");
   const [searchUser, setSearchUser] = useState("");
 
   const [skillsTaxonomy, setSkillsTaxonomy] = useState([
-    { name: "Next.js & React", category: "Web Dev", status: "APPROVED", studentCount: 42 },
-    { name: "C++ Data Structures & Algorithms", category: "DSA", status: "APPROVED", studentCount: 78 },
-    { name: "Machine Learning with PyTorch", category: "AI/ML", status: "APPROVED", studentCount: 31 },
-    { name: "Three.js & WebGL", category: "Web Dev", status: "PENDING_APPROVAL", studentCount: 4 },
-    { name: "Solidity & Smart Contracts", category: "Web3", status: "PENDING_APPROVAL", studentCount: 2 },
+    { name: "Watercolor Landscape Painting & Washes", pillar: "CREATIVE_PRACTICAL", status: "APPROVED", memberCount: 68 },
+    { name: "Morning Hatha Yoga & Posture", pillar: "HEALTH_WELLNESS", status: "APPROVED", memberCount: 94 },
+    { name: "Organic Terrace Vegetable Gardening", pillar: "CREATIVE_PRACTICAL", status: "APPROVED", memberCount: 54 },
+    { name: "First Aid Basics & Emergency CPR", pillar: "HEALTH_WELLNESS", status: "APPROVED", memberCount: 48 },
+    { name: "Artisanal Sourdough & Baking", pillar: "CREATIVE_PRACTICAL", status: "APPROVED", memberCount: 42 },
+    { name: "Acoustic Guitar Basics & Chords", pillar: "CREATIVE_PRACTICAL", status: "APPROVED", memberCount: 52 },
+    { name: "Spoken English Fluency & Confidence", pillar: "ACADEMIC_LANGUAGES", status: "APPROVED", memberCount: 76 },
+    { name: "Basic Home Electrical & Plumbing Repairs", pillar: "CREATIVE_PRACTICAL", status: "APPROVED", memberCount: 31 },
+    { name: "Pottery & Clay Sculpting", pillar: "CREATIVE_PRACTICAL", status: "PENDING_APPROVAL", memberCount: 8 },
+    { name: "Terrace Drip Irrigation Setup", pillar: "CREATIVE_PRACTICAL", status: "PENDING_APPROVAL", memberCount: 5 },
   ]);
 
   const [reports, setReports] = useState([
     {
       id: "rep-1",
-      reporter: "Sneha Nair (NIT Trichy)",
-      reported: "Anonymous User #921",
-      reason: "No-show for scheduled learning room session",
+      reporter: "Siddharth Roy (Bengaluru)",
+      reported: "Anonymous User #402",
+      reason: "No-show for scheduled morning in-person gardening meetup",
       status: "PENDING",
-      timestamp: "Yesterday, 4:15 PM",
+      timestamp: "Yesterday, 11:15 AM",
     },
   ]);
 
@@ -65,15 +71,15 @@ export default function AdminPage() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-peach-300" />
-            <h1 className="text-xl sm:text-2xl font-bold">SkillBridge Administrative Console</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">SkillBridge Community Admin & Moderation</h1>
           </div>
           <p className="text-xs text-slate-400">
-            Community moderation, user directory, skill taxonomy, and academic integrity metrics.
+            Community safety, member directory, skill taxonomy across all 4 pillars, and engagement analytics.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="peach" className="bg-peach-200 text-burgundy-900 font-bold">
-            CEP Admin Access
+            CEP Community Moderator
           </Badge>
         </div>
       </div>
@@ -81,10 +87,10 @@ export default function AdminPage() {
       {/* Admin Tabs */}
       <div className="flex items-center gap-2 border-b border-[#EDE7DE] pb-2 text-xs font-bold">
         {[
-          { id: "analytics", label: "Executive Analytics" },
-          { id: "users", label: "Students Directory (6 Active)" },
-          { id: "skills", label: "Skills Taxonomy (5)" },
-          { id: "reports", label: "Moderation Queue (1)" },
+          { id: "analytics", label: "Community Analytics" },
+          { id: "users", label: "Members Directory (6 Active)" },
+          { id: "skills", label: "Skills Taxonomy (8)" },
+          { id: "reports", label: "Community Safety Queue (1)" },
         ].map((t) => (
           <button
             key={t.id}
@@ -105,32 +111,32 @@ export default function AdminPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="p-5">
-              <span className="text-xs text-slate-muted font-bold uppercase">Total Swaps Completed</span>
-              <p className="text-3xl font-extrabold text-burgundy-600 mt-2">1,420</p>
+              <span className="text-xs text-slate-muted font-bold uppercase">Community Swaps</span>
+              <p className="text-3xl font-extrabold text-burgundy-600 mt-2">1,840</p>
               <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3" /> +18.4% this month
+                <TrendingUp className="h-3 w-3" /> +24% this month
               </span>
             </Card>
 
             <Card className="p-5">
-              <span className="text-xs text-slate-muted font-bold uppercase">Active Colleges</span>
-              <p className="text-3xl font-extrabold text-slate-heading mt-2">24</p>
+              <span className="text-xs text-slate-muted font-bold uppercase">Active Cities</span>
+              <p className="text-3xl font-extrabold text-slate-heading mt-2">18</p>
               <span className="text-[10px] text-slate-muted font-medium block mt-1">
-                IITs, NITs, BITS, VJTI, COEP
+                Pune, Bengaluru, Mumbai, Delhi
               </span>
             </Card>
 
             <Card className="p-5">
-              <span className="text-xs text-slate-muted font-bold uppercase">Peer Karma Issued</span>
-              <p className="text-3xl font-extrabold text-burgundy-600 mt-2">35.5k</p>
+              <span className="text-xs text-slate-muted font-bold uppercase">Community Karma</span>
+              <p className="text-3xl font-extrabold text-burgundy-600 mt-2">42.5k</p>
               <span className="text-[10px] text-slate-muted font-medium block mt-1">
-                Skill points in circulation
+                Points circulated
               </span>
             </Card>
 
             <Card className="p-5">
-              <span className="text-xs text-slate-muted font-bold uppercase">Match Satisfaction</span>
-              <p className="text-3xl font-extrabold text-emerald-600 mt-2">98.2%</p>
+              <span className="text-xs text-slate-muted font-bold uppercase">Neighbor Trust</span>
+              <p className="text-3xl font-extrabold text-emerald-600 mt-2">99.1%</p>
               <span className="text-[10px] text-slate-muted font-medium block mt-1">
                 Rated 4 or 5 stars
               </span>
@@ -139,20 +145,24 @@ export default function AdminPage() {
 
           <Card className="p-6">
             <CardHeader className="p-0 pb-4">
-              <CardTitle className="text-base">Top Exchanged Skill Pairs (Mutual Swaps)</CardTitle>
+              <CardTitle className="text-base">Top Community Exchange Pairings</CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-3 text-xs">
               <div className="flex items-center justify-between p-3 rounded-xl bg-cream-100">
-                <span className="font-bold text-slate-heading">Next.js & React ⇄ C++ Dynamic Programming</span>
-                <Badge variant="burgundy">214 Sessions</Badge>
+                <span className="font-bold text-slate-heading">Watercolor Landscape Painting ⇄ Morning Hatha Yoga</span>
+                <Badge variant="burgundy">284 Exchanges</Badge>
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-cream-100">
-                <span className="font-bold text-slate-heading">Figma UI/UX ⇄ Flutter Mobile Dev</span>
-                <Badge variant="burgundy">168 Sessions</Badge>
+                <span className="font-bold text-slate-heading">Terrace Vegetable Gardening ⇄ Acoustic Guitar Chords</span>
+                <Badge variant="burgundy">216 Exchanges</Badge>
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-cream-100">
-                <span className="font-bold text-slate-heading">Machine Learning (PyTorch) ⇄ Docker & Backend</span>
-                <Badge variant="burgundy">122 Sessions</Badge>
+                <span className="font-bold text-slate-heading">Artisanal Sourdough Baking ⇄ Smartphone Photography</span>
+                <Badge variant="burgundy">172 Exchanges</Badge>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-cream-100">
+                <span className="font-bold text-slate-heading">Spoken English Fluency ⇄ Basic Home Repairs & DIY</span>
+                <Badge variant="burgundy">124 Exchanges</Badge>
               </div>
             </CardContent>
           </Card>
@@ -163,9 +173,9 @@ export default function AdminPage() {
       {adminTab === "users" && (
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between gap-4">
-            <h3 className="text-base font-bold text-slate-heading">Registered Engineering Students</h3>
+            <h3 className="text-base font-bold text-slate-heading">Community Members Directory</h3>
             <Input
-              placeholder="Search student..."
+              placeholder="Search member..."
               value={searchUser}
               onChange={(e) => setSearchUser(e.target.value)}
               className="max-w-xs h-9 text-xs"
@@ -176,30 +186,30 @@ export default function AdminPage() {
             <table className="w-full text-left text-xs">
               <thead className="bg-cream-100 text-slate-heading font-bold border-b border-cream-200">
                 <tr>
-                  <th className="p-3">Student</th>
-                  <th className="p-3">College</th>
-                  <th className="p-3">Teaches</th>
-                  <th className="p-3">Points</th>
+                  <th className="p-3">Member</th>
+                  <th className="p-3">Neighborhood</th>
+                  <th className="p-3">Primary Craft / Skill</th>
+                  <th className="p-3">Karma Points</th>
                   <th className="p-3">Rating</th>
                   <th className="p-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-cream-200">
-                {students.map((st) => (
-                  <tr key={st.id} className="hover:bg-cream-50">
+                {members.map((m) => (
+                  <tr key={m.id} className="hover:bg-cream-50">
                     <td className="p-3 flex items-center gap-2">
-                      <img src={st.avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" />
+                      <img src={m.avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" />
                       <div>
-                        <span className="font-bold text-slate-heading block">{st.fullName}</span>
-                        <span className="text-[10px] text-slate-muted">{st.email}</span>
+                        <span className="font-bold text-slate-heading block">{m.fullName} ({m.age})</span>
+                        <span className="text-[10px] text-slate-muted">{m.email}</span>
                       </div>
                     </td>
-                    <td className="p-3 font-medium text-slate-heading">{st.collegeName}</td>
-                    <td className="p-3">{st.teachingSkills[0]?.name}</td>
-                    <td className="p-3 font-bold text-burgundy-700">{st.skillPointsBalance} pts</td>
-                    <td className="p-3 font-bold text-amber-600">★ {st.averageRating.toFixed(1)}</td>
+                    <td className="p-3 font-medium text-slate-heading">{m.neighborhood}, {m.city.split(",")[0]}</td>
+                    <td className="p-3">{m.teachingSkills[0]?.name}</td>
+                    <td className="p-3 font-bold text-burgundy-700">{m.skillPointsBalance} pts</td>
+                    <td className="p-3 font-bold text-amber-600">★ {m.averageRating.toFixed(1)}</td>
                     <td className="p-3">
-                      <Badge variant="success">Active</Badge>
+                      <Badge variant="success">Active Member</Badge>
                     </td>
                   </tr>
                 ))}
@@ -212,7 +222,7 @@ export default function AdminPage() {
       {/* Skills Taxonomy Tab */}
       {adminTab === "skills" && (
         <Card className="p-6 space-y-4">
-          <h3 className="text-base font-bold text-slate-heading">Official Skill Catalog</h3>
+          <h3 className="text-base font-bold text-slate-heading">Official 4-Pillar Skill Taxonomy</h3>
           <div className="space-y-2">
             {skillsTaxonomy.map((sk) => (
               <div
@@ -221,7 +231,7 @@ export default function AdminPage() {
               >
                 <div>
                   <span className="font-bold text-slate-heading block">{sk.name}</span>
-                  <span className="text-[10px] text-slate-muted">{sk.category} • {sk.studentCount} active students</span>
+                  <span className="text-[10px] text-slate-muted">Pillar: {sk.pillar} • {sk.memberCount} active mentors</span>
                 </div>
                 {sk.status === "APPROVED" ? (
                   <Badge variant="success">Approved</Badge>
@@ -232,7 +242,7 @@ export default function AdminPage() {
                     onClick={() => handleApproveSkill(sk.name)}
                     className="text-xs h-7 gap-1"
                   >
-                    <Check className="h-3 w-3" /> Approve Topic
+                    <Check className="h-3 w-3" /> Approve Category
                   </Button>
                 )}
               </div>
@@ -244,14 +254,14 @@ export default function AdminPage() {
       {/* Reports Queue Tab */}
       {adminTab === "reports" && (
         <Card className="p-6 space-y-4">
-          <h3 className="text-base font-bold text-slate-heading">Peer Moderation Tickets</h3>
+          <h3 className="text-base font-bold text-slate-heading">Community Moderation Tickets</h3>
           {reports.map((rep) => (
             <div
               key={rep.id}
               className="p-4 rounded-2xl bg-cream-100 border border-cream-200 text-xs space-y-2"
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-heading">Report #{rep.id}</span>
+                <span className="font-bold text-slate-heading">Ticket #{rep.id}</span>
                 <Badge variant={rep.status === "RESOLVED" ? "success" : "peach"}>
                   {rep.status}
                 </Badge>
@@ -266,7 +276,7 @@ export default function AdminPage() {
                     onClick={() => handleResolveReport(rep.id)}
                     className="text-xs h-8"
                   >
-                    Mark as Resolved & Warn User
+                    Mark as Resolved & Check In with Members
                   </Button>
                 </div>
               )}

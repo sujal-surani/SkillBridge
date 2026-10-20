@@ -16,15 +16,15 @@ import {
   Sparkles, 
   Star, 
   CheckCircle2, 
-  Send,
-  Coins,
-  ShieldCheck,
-  Code2
+  Send, 
+  Coins, 
+  MapPin, 
+  Palette, 
+  HeartPulse 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/context/AuthContext";
 
 export default function LearningRoomPage() {
@@ -39,18 +39,18 @@ export default function LearningRoomPage() {
   const [screenSharing, setScreenSharing] = useState(false);
 
   // Timer: 60:00 countdown
-  const [secondsLeft, setSecondsLeft] = useState(58 * 60 + 24); // 58:24 remaining
+  const [secondsLeft, setSecondsLeft] = useState(54 * 60 + 12); // 54:12 remaining
   const [timerRunning, setTimerRunning] = useState(true);
 
-  // Collaborative Notes
+  // Collaborative Notes: Watercolor & Yoga
   const [notes, setNotes] = useState(
-    `# SkillBridge Session Notes: C++ DP & Next.js\n\n**Mentors:** Aarav Sharma & Priya Patel\n\n### Key Concepts Covered:\n1. Recursive State Definition:\n   - dp(i, j) = number of unique paths from (i, j) to (m-1, n-1)\n2. Base Case:\n   - When i == m-1 and j == n-1 -> return 1\n3. Next.js Server Action Tip:\n   - Always validate payload on server using zod!\n   - Use revalidatePath("/dashboard") to refresh UI cache.`
+    "# SkillBridge Community Exchange: Watercolor Painting & Hatha Yoga\n\n**Mentors:** Pooja Sharma (34, Artist) & Kavita Nair (39, Yoga Coach)\n\n### 1. Watercolor Wash Fundamentals (Pooja):\n- **Paper Prep:** Pre-wet both sides of 300 GSM cold-pressed cotton paper with clean water.\n- **Wet-on-Wet Sky Wash:** Mix Ultramarine Blue with a touch of Burnt Sienna for natural cloudy tones.\n- **Pigment Control:** Dab excess water from your brush onto a dry cotton cloth before applying detail.\n\n### 2. Gentle Spine & Posture Routines (Kavita):\n- **Marjaryasana-Bitilasana (Cat-Cow):** Inhale arch spine, exhale round back gently (10 slow breaths).\n- **Thread-the-Needle Pose:** Release shoulder blade tension after hours at the drawing easel.\n- **Belly Breathing (Diaphragmatic):** Place hand on abdomen, 4 seconds in, 6 seconds out to calm the nervous system."
   );
 
   // In-room chat
   const [roomChat, setRoomChat] = useState([
-    { sender: "Priya Patel", text: "Audio and video are crystal clear!", time: "5:01 PM" },
-    { sender: "Aarav Sharma", text: "Great! Let's start with the grid recurrence relation.", time: "5:02 PM" },
+    { sender: "Kavita Nair", text: "Namaste Pooja! The video feed and audio are crystal clear.", time: "10:01 AM" },
+    { sender: "Pooja Sharma", text: "Namaste Kavitaji! I have my watercolor palette and mat ready.", time: "10:02 AM" },
   ]);
   const [chatInput, setChatInput] = useState("");
 
@@ -58,12 +58,12 @@ export default function LearningRoomPage() {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [selectedTags, setSelectedTags] = useState<string[]>([
-    "Clear Explanations",
     "Patient Mentor",
-    "Great Code Examples",
+    "Practical Art Guidance",
+    "Warm & Respectful",
   ]);
   const [reviewText, setReviewText] = useState(
-    "Priya was exceptional! She demystified Dynamic Programming grid tabulation in 30 minutes with visual sketches."
+    "Kavita's spine stretches completely relieved the stiffness in my neck! A truly enriching and restorative community exchange."
   );
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
@@ -89,7 +89,7 @@ export default function LearningRoomPage() {
     setRoomChat([
       ...roomChat,
       {
-        sender: currentUser?.fullName || "Aarav Sharma",
+        sender: currentUser?.fullName || "Pooja Sharma",
         text: chatInput.trim(),
         time: "Just now",
       },
@@ -124,13 +124,13 @@ export default function LearningRoomPage() {
       {/* Room Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[#EDE7DE] shadow-subtle">
         <div className="flex items-center gap-3">
-          <Badge variant="match">Room #{roomId}</Badge>
+          <Badge variant="match">Community Room #{roomId}</Badge>
           <div>
             <h1 className="text-sm font-bold text-slate-heading">
-              1-on-1 Peer Session: C++ Dynamic Programming ⇄ Next.js App Router
+              1-on-1 Community Exchange: Watercolor Landscape Painting ⇄ Hatha Yoga
             </h1>
             <p className="text-xs text-slate-muted">
-              Aarav Sharma (IIT Bombay) & Priya Patel (VJTI Mumbai)
+              Pooja Sharma (34, Jaipur) & Kavita Nair (39, Kochi)
             </p>
           </div>
         </div>
@@ -149,12 +149,12 @@ export default function LearningRoomPage() {
             className="bg-red-600 hover:bg-red-700 text-white text-xs h-9 gap-1.5"
           >
             <PhoneOff className="h-3.5 w-3.5" />
-            End & Review Session
+            End & Review Exchange
           </Button>
         </div>
       </div>
 
-      {/* Main Grid: Video Streams & Collaborative Workspace */}
+      {/* Main Grid: Video Feeds & Collaborative Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left 2 Columns: Video Feeds & Media Bar */}
@@ -162,28 +162,28 @@ export default function LearningRoomPage() {
           
           {/* Simulated Video Feeds */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Peer Video Card (Priya) */}
+            {/* Peer Video Card (Kavita) */}
             <div className="relative aspect-video rounded-3xl bg-slate-900 overflow-hidden shadow-card border border-slate-800 flex items-center justify-center">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
-                alt="Priya Patel"
+                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=800"
+                alt="Kavita Nair"
                 className="w-full h-full object-cover opacity-90"
               />
               <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Priya Patel (VJTI)
+                Kavita Nair (Yoga Coach, Kochi)
               </div>
               <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px]">
-                Host • Screen Active
+                Posture Mat Active
               </div>
             </div>
 
-            {/* Self Video Card (Aarav) */}
+            {/* Self Video Card (Pooja) */}
             <div className="relative aspect-video rounded-3xl bg-slate-900 overflow-hidden shadow-card border border-slate-800 flex items-center justify-center">
               {camOn ? (
                 <img
-                  src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=800"
-                  alt="Aarav Sharma"
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
+                  alt="Pooja Sharma"
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -226,7 +226,7 @@ export default function LearningRoomPage() {
               className={`p-3 rounded-xl transition-all ${
                 screenSharing ? "bg-burgundy-600 text-white" : "bg-cream-200 text-slate-heading hover:bg-cream-300"
               }`}
-              title="Share Screen"
+              title="Share Easel / Screen"
             >
               <Share2 className="h-5 w-5" />
             </button>
@@ -238,7 +238,7 @@ export default function LearningRoomPage() {
               <div className="flex items-center gap-2">
                 <Edit3 className="h-4 w-4 text-burgundy-600" />
                 <h3 className="text-xs font-bold text-slate-heading uppercase tracking-wider">
-                  Shared Session Scratchpad (Markdown)
+                  Shared Session Notes (Watercolor Techniques & Yoga Postures)
                 </h3>
               </div>
               <Badge variant="success">Auto-Saving</Badge>
@@ -278,7 +278,7 @@ export default function LearningRoomPage() {
           <form onSubmit={handleSendRoomChat} className="p-3 border-t border-cream-200 flex gap-2">
             <Input
               type="text"
-              placeholder="Ask a doubt or share a link..."
+              placeholder="Ask a question or share a tip..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
               className="h-9 text-xs"
@@ -295,12 +295,12 @@ export default function LearningRoomPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-[#EDE7DE] space-y-5 animate-scale-up">
             <div className="text-center space-y-1">
-              <Badge variant="peach" className="mb-1">Session Completed</Badge>
+              <Badge variant="peach" className="mb-1">Exchange Completed</Badge>
               <h2 className="text-xl font-bold text-slate-heading">
-                Rate & Review Your Exchange with Priya
+                Rate & Review Your Exchange with Kavita
               </h2>
               <p className="text-xs text-slate-muted">
-                Your feedback calibrates our matching algorithm and awards points.
+                Your feedback strengthens our community karma and neighbor trust.
               </p>
             </div>
 
@@ -312,9 +312,9 @@ export default function LearningRoomPage() {
                 <h3 className="text-base font-bold text-slate-heading">Review Submitted!</h3>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-peach-100 text-burgundy-800 text-xs font-bold border border-peach-200">
                   <Coins className="h-4 w-4 text-burgundy-600" />
-                  +25 Skill Points Credited to Your Account
+                  +25 Community Skill Points Awarded
                 </div>
-                <p className="text-xs text-slate-muted">Returning to dashboard...</p>
+                <p className="text-xs text-slate-muted">Returning to community dashboard...</p>
               </div>
             ) : (
               <form onSubmit={handleCompleteReview} className="space-y-4">
@@ -346,14 +346,14 @@ export default function LearningRoomPage() {
                 {/* Peer Compliment Tags */}
                 <div>
                   <label className="text-xs font-semibold text-slate-heading block mb-2">
-                    Select Peer Badges to Award:
+                    Award Community Accolades:
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      "Clear Explanations",
                       "Patient Mentor",
-                      "Great Code Examples",
-                      "Strong Conceptual Depth",
+                      "Practical Art Guidance",
+                      "Warm & Respectful",
+                      "Clear Explanations",
                       "Punctual & Prepared",
                     ].map((tag) => {
                       const isSelected = selectedTags.includes(tag);
@@ -378,7 +378,7 @@ export default function LearningRoomPage() {
                 {/* Written Review */}
                 <div>
                   <label className="text-xs font-semibold text-slate-heading block mb-1">
-                    Written Feedback (Visible on Priya&apos;s Profile):
+                    Written Feedback (Visible on Kavita&apos;s Profile):
                   </label>
                   <textarea
                     rows={3}
@@ -393,7 +393,7 @@ export default function LearningRoomPage() {
                 <div className="p-3 rounded-2xl bg-peach-50 border border-peach-200 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-burgundy-800 font-bold">
                     <Sparkles className="h-4 w-4 text-burgundy-600" />
-                    <span>Reward for session completion:</span>
+                    <span>Reward for completed exchange:</span>
                   </div>
                   <Badge variant="peach">+25 Skill Points</Badge>
                 </div>

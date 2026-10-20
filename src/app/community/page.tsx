@@ -13,18 +13,22 @@ import {
   Share2, 
   Tag, 
   Check,
-  X
+  X,
+  MapPin,
+  Sprout,
+  HeartPulse,
+  Laptop
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { INITIAL_DOUBTS, CommunityDoubt } from "@/lib/data/mock-data";
+import { Card } from "@/components/ui/card";
+import { INITIAL_COMMUNITY_QUESTIONS, CommunityQuestion } from "@/lib/data/mock-data";
 import { useAuth } from "@/lib/context/AuthContext";
 
 export default function CommunityPage() {
   const { currentUser } = useAuth();
-  const [doubts, setDoubts] = useState<CommunityDoubt[]>(INITIAL_DOUBTS);
+  const [questions, setQuestions] = useState<CommunityQuestion[]>(INITIAL_COMMUNITY_QUESTIONS);
   const [selectedTag, setSelectedTag] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [postModalOpen, setPostModalOpen] = useState(false);
@@ -32,44 +36,47 @@ export default function CommunityPage() {
   // New question form state
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
-  const [newTags, setNewTags] = useState("DSA, Recursion, C++");
+  const [newTags, setNewTags] = useState("Gardening, Terrace, Plant Care");
 
   // Reply drawer state
-  const [replyDoubtId, setReplyDoubtId] = useState<string | null>(null);
+  const [replyQuestionId, setReplyQuestionId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
 
-  const allTags = ["ALL", "Dynamic Programming", "Next.js", "C++", "DSA", "Web Dev", "Full-Stack", "Recursion"];
+  const allTags = ["ALL", "Gardening", "Organic", "Plant Care", "Excel", "Budgeting", "Yoga", "First Aid", "Baking"];
 
-  const filteredDoubts = doubts.filter((d) => {
+  const filteredQuestions = questions.filter((q) => {
     const matchesSearch =
-      d.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      q.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      q.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesTag =
       selectedTag === "ALL" ||
-      d.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase());
+      q.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase());
 
     return matchesSearch && matchesTag;
   });
 
   const handleUpvote = (id: string) => {
-    setDoubts(
-      doubts.map((d) => (d.id === id ? { ...d, upvotes: d.upvotes + 1 } : d))
+    setQuestions(
+      questions.map((q) => (q.id === id ? { ...q, upvotes: q.upvotes + 1 } : q))
     );
   };
 
-  const handleCreateDoubt = (e: React.FormEvent) => {
+  const handleCreateQuestion = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    const newQuestion: CommunityDoubt = {
-      id: "doubt-" + Date.now(),
+    const newQ: CommunityQuestion = {
+      id: "q-" + Date.now(),
       title: newTitle.trim(),
       content: newContent.trim(),
-      authorName: currentUser?.fullName || "Aarav Sharma",
-      authorCollege: currentUser?.collegeName || "IIT Bombay",
-      authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256",
+      authorName: currentUser?.fullName || "Ramesh Kulkarni",
+      authorAge: currentUser?.age || 45,
+      authorOccupation: currentUser?.occupationOrInterest || "Community Member",
+      authorNeighborhood: `${currentUser?.neighborhood || "Koregaon Park"}, ${currentUser?.city || "Pune"}`,
+      authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
+      pillar: "CREATIVE_PRACTICAL",
       tags: newTags.split(",").map((t) => t.trim()),
       createdAt: "Just now",
       upvotes: 1,
@@ -78,55 +85,55 @@ export default function CommunityPage() {
       replies: [],
     };
 
-    setDoubts([newQuestion, ...doubts]);
+    setQuestions([newQ, ...questions]);
     setNewTitle("");
     setNewContent("");
     setPostModalOpen(false);
   };
 
-  const handleAddReply = (e: React.FormEvent, doubtId: string) => {
+  const handleAddReply = (e: React.FormEvent, questionId: string) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
 
-    setDoubts(
-      doubts.map((d) => {
-        if (d.id === doubtId) {
+    setQuestions(
+      questions.map((q) => {
+        if (q.id === questionId) {
           const newReply = {
             id: "reply-" + Date.now(),
-            authorName: currentUser?.fullName || "Aarav Sharma",
-            authorCollege: currentUser?.collegeName || "IIT Bombay",
-            authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=256",
+            authorName: currentUser?.fullName || "Ramesh Kulkarni",
+            authorOccupation: `${currentUser?.occupationOrInterest} (${currentUser?.age}, ${currentUser?.city.split(",")[0]})`,
+            authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
             content: replyContent.trim(),
             createdAt: "Just now",
             isSolution: false,
             upvotes: 0,
           };
           return {
-            ...d,
-            repliesCount: d.repliesCount + 1,
-            replies: [...d.replies, newReply],
+            ...q,
+            repliesCount: q.repliesCount + 1,
+            replies: [...q.replies, newReply],
           };
         }
-        return d;
+        return q;
       })
     );
     setReplyContent("");
   };
 
-  const handleMarkSolution = (doubtId: string, replyId: string) => {
-    setDoubts(
-      doubts.map((d) => {
-        if (d.id === doubtId) {
+  const handleMarkSolution = (questionId: string, replyId: string) => {
+    setQuestions(
+      questions.map((q) => {
+        if (q.id === questionId) {
           return {
-            ...d,
+            ...q,
             isSolved: true,
-            replies: d.replies.map((r) => ({
+            replies: q.replies.map((r) => ({
               ...r,
               isSolution: r.id === replyId,
             })),
           };
         }
-        return d;
+        return q;
       })
     );
   };
@@ -136,12 +143,12 @@ export default function CommunityPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <Badge variant="peach" className="mb-1">Campus Problem Board</Badge>
+          <Badge variant="peach" className="mb-1">Community Problem Board</Badge>
           <h1 className="text-3xl font-extrabold text-slate-heading">
-            Doubt & Solution Exchange
+            Neighborhood Q&A & Skill Advice
           </h1>
           <p className="text-xs sm:text-sm text-slate-muted mt-1">
-            Stuck on recursion, dynamic programming, or docker deployment? Ask your engineering peers.
+            Need guidance on gardening, first aid, Excel budgeting, sourdough, or public speaking? Ask your neighbors.
           </p>
         </div>
 
@@ -151,7 +158,7 @@ export default function CommunityPage() {
           className="gap-2 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          Ask a Question
+          Ask the Community
         </Button>
       </div>
 
@@ -159,7 +166,7 @@ export default function CommunityPage() {
       <div className="space-y-3">
         <div className="relative">
           <Input
-            placeholder="Search problems, concepts, or algorithms..."
+            placeholder="Search neighborhood questions, hobbies, or concepts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-11 pl-10 text-xs sm:text-sm rounded-2xl"
@@ -184,72 +191,75 @@ export default function CommunityPage() {
         </div>
       </div>
 
-      {/* Doubts List */}
+      {/* Questions List */}
       <div className="space-y-4">
-        {filteredDoubts.map((doubt) => (
-          <Card key={doubt.id} className="p-6 transition-all">
+        {filteredQuestions.map((q) => (
+          <Card key={q.id} className="p-6 transition-all">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  {doubt.isSolved ? (
+                  {q.isSolved ? (
                     <Badge variant="success" className="gap-1">
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      Solved
+                      Solved by Neighbor
                     </Badge>
                   ) : (
-                    <Badge variant="peach">Open Doubt</Badge>
+                    <Badge variant="peach">Open Question</Badge>
                   )}
-                  {doubt.tags.map((t) => (
+                  {q.tags.map((t) => (
                     <span key={t} className="text-[11px] text-slate-muted bg-cream-200 px-2 py-0.5 rounded-md font-medium">
                       #{t}
                     </span>
                   ))}
-                  <span className="text-[11px] text-slate-muted">• {doubt.createdAt}</span>
+                  <span className="text-[11px] text-slate-muted">• {q.createdAt}</span>
                 </div>
 
                 <h3 className="text-base font-bold text-slate-heading">
-                  {doubt.title}
+                  {q.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-body leading-relaxed">
-                  {doubt.content}
+                  {q.content}
                 </p>
 
                 {/* Author Info */}
                 <div className="flex items-center gap-2 pt-2 text-xs">
                   <img
-                    src={doubt.authorAvatar}
+                    src={q.authorAvatar}
                     alt=""
                     className="h-6 w-6 rounded-full object-cover"
                   />
-                  <span className="font-semibold text-slate-heading">{doubt.authorName}</span>
-                  <span className="text-slate-muted">({doubt.authorCollege})</span>
+                  <span className="font-semibold text-slate-heading">{q.authorName} ({q.authorAge})</span>
+                  <span className="text-slate-muted flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-burgundy-600" />
+                    {q.authorNeighborhood}
+                  </span>
                 </div>
               </div>
 
               {/* Upvote Pill */}
               <button
-                onClick={() => handleUpvote(doubt.id)}
+                onClick={() => handleUpvote(q.id)}
                 className="flex flex-col items-center justify-center p-2 rounded-xl bg-cream-100 border border-cream-200 hover:bg-cream-200 transition-colors min-w-[48px]"
               >
                 <ThumbsUp className="h-4 w-4 text-burgundy-600 mb-0.5" />
-                <span className="text-xs font-bold text-slate-heading">{doubt.upvotes}</span>
+                <span className="text-xs font-bold text-slate-heading">{q.upvotes}</span>
               </button>
             </div>
 
             {/* Replies Section */}
             <div className="mt-5 pt-4 border-t border-cream-200 space-y-3">
               <div className="flex items-center justify-between text-xs font-bold text-slate-heading">
-                <span>{doubt.replies.length} Solutions & Explanations</span>
+                <span>{q.replies.length} Neighbor Advice & Answers</span>
                 <button
-                  onClick={() => setReplyDoubtId(replyDoubtId === doubt.id ? null : doubt.id)}
+                  onClick={() => setReplyQuestionId(replyQuestionId === q.id ? null : q.id)}
                   className="text-burgundy-600 hover:underline"
                 >
-                  {replyDoubtId === doubt.id ? "Close Reply" : "+ Write Solution"}
+                  {replyQuestionId === q.id ? "Close" : "+ Share Advice"}
                 </button>
               </div>
 
               {/* Render Existing Replies */}
-              {doubt.replies.map((reply) => (
+              {q.replies.map((reply) => (
                 <div
                   key={reply.id}
                   className={`p-4 rounded-2xl text-xs space-y-2 ${
@@ -263,10 +273,10 @@ export default function CommunityPage() {
                       <img
                         src={reply.authorAvatar}
                         alt=""
-                        className="h-5 w-5 rounded-full object-cover"
+                        className="h-6 w-6 rounded-full object-cover"
                       />
                       <span className="font-bold text-slate-heading">{reply.authorName}</span>
-                      <span className="text-[10px] text-slate-muted">({reply.authorCollege})</span>
+                      <span className="text-[10px] text-slate-muted">({reply.authorOccupation})</span>
                     </div>
 
                     {reply.isSolution ? (
@@ -276,7 +286,7 @@ export default function CommunityPage() {
                       </span>
                     ) : (
                       <button
-                        onClick={() => handleMarkSolution(doubt.id, reply.id)}
+                        onClick={() => handleMarkSolution(q.id, reply.id)}
                         className="text-[10px] text-slate-muted hover:text-emerald-700 underline"
                       >
                         Mark as Solution
@@ -289,15 +299,15 @@ export default function CommunityPage() {
               ))}
 
               {/* Inline Write Reply Form */}
-              {replyDoubtId === doubt.id && (
+              {replyQuestionId === q.id && (
                 <form
-                  onSubmit={(e) => handleAddReply(e, doubt.id)}
+                  onSubmit={(e) => handleAddReply(e, q.id)}
                   className="mt-3 space-y-2"
                 >
                   <textarea
                     rows={3}
                     required
-                    placeholder="Provide a clear, step-by-step conceptual answer..."
+                    placeholder="Provide a kind, practical, and helpful answer for your neighbor..."
                     value={replyContent}
                     onChange={(e) => setReplyContent(e.target.value)}
                     className="w-full rounded-2xl border border-[#EDE7DE] p-3 text-xs text-slate-heading focus:border-burgundy-600 focus:outline-none"
@@ -307,12 +317,12 @@ export default function CommunityPage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => setReplyDoubtId(null)}
+                      onClick={() => setReplyQuestionId(null)}
                     >
                       Cancel
                     </Button>
                     <Button type="submit" variant="primary" size="sm">
-                      Submit Explanation
+                      Submit Advice
                     </Button>
                   </div>
                 </form>
@@ -328,8 +338,8 @@ export default function CommunityPage() {
           <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-[#EDE7DE] space-y-4">
             <div className="flex items-start justify-between pb-3 border-b border-cream-200">
               <div>
-                <h3 className="text-base font-bold text-slate-heading">Post a Technical Doubt</h3>
-                <p className="text-xs text-slate-muted">Ask your peer community for guidance</p>
+                <h3 className="text-base font-bold text-slate-heading">Ask the Community</h3>
+                <p className="text-xs text-slate-muted">Seek advice or tips from your neighborhood</p>
               </div>
               <button
                 onClick={() => setPostModalOpen(false)}
@@ -339,14 +349,14 @@ export default function CommunityPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateDoubt} className="space-y-4">
+            <form onSubmit={handleCreateQuestion} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-heading mb-1">
-                  Question Title (Concise & Specific):
+                  Question Summary:
                 </label>
                 <Input
                   required
-                  placeholder="e.g. How to handle cycle detection in a directed graph using DFS?"
+                  placeholder="e.g. How to prepare clay soil for terrace spinach planting?"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="text-xs"
@@ -355,12 +365,12 @@ export default function CommunityPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-heading mb-1">
-                  Detailed Explanation & Code Snippet:
+                  Details & What You&apos;ve Tried:
                 </label>
                 <textarea
                   rows={4}
                   required
-                  placeholder="Explain what you have attempted so far and where you are stuck..."
+                  placeholder="Explain your situation so neighbors can give the best advice..."
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
                   className="w-full rounded-2xl border border-[#EDE7DE] p-3 text-xs text-slate-heading focus:border-burgundy-600 focus:outline-none"
@@ -369,10 +379,10 @@ export default function CommunityPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-heading mb-1">
-                  Tags (Comma separated):
+                  Topic Tags (Comma separated):
                 </label>
                 <Input
-                  placeholder="e.g. Graphs, DFS, C++, Algorithms"
+                  placeholder="e.g. Gardening, Soil, Terrace, Organic"
                   value={newTags}
                   onChange={(e) => setNewTags(e.target.value)}
                   className="text-xs"
@@ -389,7 +399,7 @@ export default function CommunityPage() {
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary" size="sm">
-                  Publish Question
+                  Publish to Board
                 </Button>
               </div>
             </form>

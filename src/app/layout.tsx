@@ -7,7 +7,7 @@ import { AuthProvider } from "@/lib/context/AuthContext";
 export const metadata: Metadata = {
   title: "SkillBridge — Share. Learn. Repeat.",
   description:
-    "Community-driven peer-to-peer knowledge exchange for engineering students. No mandatory payment. Skill for Skill. Knowledge for Knowledge.",
+    "Community-driven peer-to-peer knowledge exchange for everyone. Trade skills in drawing, health, cooking, gardening, languages, music, practical life crafts, and tech with your neighbors. No mandatory payment.",
 };
 
 export default function RootLayout({

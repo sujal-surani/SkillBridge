@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
           </Link>
           <h1 className="text-2xl font-bold text-slate-heading">Reset Your Password</h1>
           <p className="text-xs text-slate-muted">
-            Enter your college email address and we will send you a secure verification link.
+            Enter your email address and we will send you a secure verification link.
           </p>
         </div>
 
@@ -50,13 +50,13 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-heading mb-1.5">
-                  College Email
+                  Email Address
                 </label>
                 <div className="relative">
                   <Input
                     type="email"
                     required
-                    placeholder="e.g. aarav.sharma@cse.iitb.ac.in"
+                    placeholder="e.g. ramesh.kulkarni@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-9"

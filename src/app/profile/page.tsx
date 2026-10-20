@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { 
-  GraduationCap, 
+  HeartHandshake, 
   MapPin, 
   Calendar, 
   Star, 
@@ -15,11 +15,12 @@ import {
   Languages, 
   ShieldCheck,
   BookOpen,
-  Code
+  Sprout,
+  Laptop
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/context/AuthContext";
 
 export default function ProfilePage() {
@@ -29,7 +30,7 @@ export default function ProfilePage() {
   if (!currentUser) {
     return (
       <div className="mx-auto max-w-xl text-center py-24 px-4">
-        <h2 className="text-xl font-bold text-slate-heading">Sign in to view your profile</h2>
+        <h2 className="text-xl font-bold text-slate-heading">Sign in to view your community profile</h2>
         <Link href="/auth/login" className="mt-4 inline-block">
           <Button>Sign In</Button>
         </Link>
@@ -40,10 +41,11 @@ export default function ProfilePage() {
   const sessionHistory = [
     {
       id: "sess-1",
-      partnerName: "Priya Patel",
-      partnerCollege: "VJTI Mumbai",
-      partnerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=128",
-      topic: "C++ Dynamic Programming & Next.js Server Actions",
+      partnerName: "Kavita Nair",
+      partnerAge: 39,
+      partnerLocation: "Panampilly Nagar, Kochi",
+      partnerAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=128",
+      topic: "Watercolor Sky Washes ⇄ Morning Hatha Yoga",
       date: "Yesterday",
       duration: "60 mins",
       pointsEarned: "+25 pts",
@@ -51,11 +53,12 @@ export default function ProfilePage() {
     },
     {
       id: "sess-2",
-      partnerName: "Rohan Verma",
-      partnerCollege: "BITS Pilani",
-      partnerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=128",
-      topic: "PyTorch CNN Architectures & Tailwind CSS Grid",
-      date: "Oct 16, 2026",
+      partnerName: "Harish Patel",
+      partnerAge: 58,
+      partnerLocation: "Navrangpura, Ahmedabad",
+      partnerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=128",
+      topic: "Pencil Sketching Basics ⇄ Spoken English Storytelling",
+      date: "Oct 14, 2026",
       duration: "45 mins",
       pointsEarned: "+25 pts",
       ratingGiven: 5,
@@ -65,21 +68,23 @@ export default function ProfilePage() {
   const receivedReviews = [
     {
       id: "rev-1",
-      authorName: "Priya Patel",
-      authorCollege: "VJTI Mumbai",
+      authorName: "Kavita Nair",
+      authorAge: 39,
+      authorLocation: "Panampilly Nagar, Kochi",
       rating: 5,
       date: "Yesterday",
-      comment: "Aarav is an outstanding communicator. He broke down Next.js routing patterns with real diagrams and helped me fix hydration bugs.",
-      badges: ["Clear Explanations", "Patient Mentor", "Great Visuals"],
+      comment: "Pooja's color mixing demonstration was so clear and inspiring! She helped me understand how to control water on cotton paper without fear.",
+      badges: ["Patient Mentor", "Practical Art Guidance", "Warm & Respectful"],
     },
     {
       id: "rev-2",
-      authorName: "Rohan Verma",
-      authorCollege: "BITS Pilani",
+      authorName: "Harish Patel",
+      authorAge: 58,
+      authorLocation: "Navrangpura, Ahmedabad",
       rating: 5,
-      date: "Oct 16, 2026",
-      comment: "Super knowledgeable in frontend UI architecture. Highly recommended peer!",
-      badges: ["Fast Problem Solver", "Clean Code"],
+      date: "Oct 14, 2026",
+      comment: "Pooja is a gifted artist and a patient instructor. My grandchildren were delighted by the botanical sketches we made together!",
+      badges: ["Deep Practical Experience", "Clear Explanations"],
     },
   ];
 
@@ -96,16 +101,17 @@ export default function ProfilePage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-slate-heading">
-                {currentUser.fullName}
+                {currentUser.fullName} ({currentUser.age})
               </h1>
-              <Badge variant="burgundy">Verified Scholar</Badge>
+              <Badge variant="burgundy">Community Mentor</Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-muted flex items-center gap-1.5">
-              <GraduationCap className="h-4 w-4 text-burgundy-600" />
-              {currentUser.collegeName} • {currentUser.major} &apos;{currentUser.graduationYear}
+              <MapPin className="h-4 w-4 text-burgundy-600" />
+              {currentUser.neighborhood}, {currentUser.city} • {currentUser.occupationOrInterest}
             </p>
             <p className="text-xs text-slate-muted flex items-center gap-2">
-              <MapPin className="h-3.5 w-3.5" /> {currentUser.city} • Mode: {currentUser.modePreference}
+              <span>Mode: <strong>{currentUser.modePreference}</strong></span>
+              <span>• Speaks: {currentUser.spokenLanguages.join(", ")}</span>
             </p>
           </div>
         </div>
@@ -118,7 +124,7 @@ export default function ProfilePage() {
               <span>{currentUser.skillPointsBalance} pts</span>
             </div>
             <span className="text-[10px] text-slate-muted uppercase font-bold block">
-              Skill Points Balance
+              Karma Points Balance
             </span>
           </div>
 
@@ -134,9 +140,9 @@ export default function ProfilePage() {
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-[#EDE7DE] pb-2 text-xs font-bold">
         {[
-          { id: "skills", label: "Skills & Goals" },
-          { id: "history", label: "Session History (14)" },
-          { id: "reviews", label: "Peer Reviews & Badges" },
+          { id: "skills", label: "Skills & Learning Wishlist" },
+          { id: "history", label: "Exchange History (16)" },
+          { id: "reviews", label: "Neighbor Reviews & Accolades" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -157,7 +163,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 space-y-4">
             <div className="flex items-center gap-2 text-burgundy-700">
-              <Code className="h-5 w-5" />
+              <Sprout className="h-5 w-5" />
               <h3 className="text-base font-bold text-slate-heading">Skills I Can Teach</h3>
             </div>
             <div className="space-y-3">
@@ -168,7 +174,7 @@ export default function ProfilePage() {
                 >
                   <div>
                     <p className="font-bold text-slate-heading">{sk.name}</p>
-                    <p className="text-[11px] text-slate-muted">{sk.category} • {sk.yearsExperience} yrs exp</p>
+                    <p className="text-[11px] text-slate-muted">{sk.category} • {sk.yearsExperience} yrs experience</p>
                   </div>
                   <Badge variant="burgundy">{sk.proficiency}</Badge>
                 </div>
@@ -179,7 +185,7 @@ export default function ProfilePage() {
           <Card className="p-6 space-y-4">
             <div className="flex items-center gap-2 text-emerald-700">
               <BookOpen className="h-5 w-5" />
-              <h3 className="text-base font-bold text-slate-heading">Target Learning Goals</h3>
+              <h3 className="text-base font-bold text-slate-heading">What I Want to Learn</h3>
             </div>
             <div className="space-y-3">
               {currentUser.learningSkills.map((sk) => (
@@ -191,7 +197,7 @@ export default function ProfilePage() {
                     <p className="font-bold text-slate-heading">{sk.name}</p>
                     <p className="text-[11px] text-slate-muted">{sk.category}</p>
                   </div>
-                  <Badge variant="success">Goal: {sk.targetProficiency}</Badge>
+                  <Badge variant="success">Target: {sk.targetProficiency}</Badge>
                 </div>
               ))}
             </div>
@@ -213,7 +219,7 @@ export default function ProfilePage() {
                 <div>
                   <h4 className="text-sm font-bold text-slate-heading">{sess.topic}</h4>
                   <p className="text-xs text-slate-muted">
-                    With {sess.partnerName} ({sess.partnerCollege}) • {sess.date} ({sess.duration})
+                    With {sess.partnerName} ({sess.partnerAge}) • {sess.partnerLocation} • {sess.date} ({sess.duration})
                   </p>
                 </div>
               </div>
@@ -241,8 +247,10 @@ export default function ProfilePage() {
                     {rev.authorName.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-heading">{rev.authorName}</h4>
-                    <p className="text-[11px] text-slate-muted">{rev.authorCollege} • {rev.date}</p>
+                    <h4 className="text-xs font-bold text-slate-heading">
+                      {rev.authorName} ({rev.authorAge})
+                    </h4>
+                    <p className="text-[11px] text-slate-muted">{rev.authorLocation} • {rev.date}</p>
                   </div>
                 </div>
 

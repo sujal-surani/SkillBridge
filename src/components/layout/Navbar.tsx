@@ -10,29 +10,30 @@ import {
   Compass, 
   Menu, 
   X,
-  GraduationCap,
+  HeartHandshake,
   LayoutDashboard,
   Coins,
   Shield,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  MapPin
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_STUDENTS } from "@/lib/data/mock-data";
+import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
 
 export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
-  const { currentUser, loginAsStudent, logout } = useAuth();
+  const { currentUser, loginAsMember, logout } = useAuth();
 
   const navLinks = [
-    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Community Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Explore Skills", href: "/explore", icon: Compass },
     { label: "My Matches", href: "/matches", icon: Users },
-    { label: "Doubt Board", href: "/community", icon: HelpCircle },
+    { label: "Problem Board", href: "/community", icon: HelpCircle },
     { label: "About", href: "/about", icon: null },
   ];
 
@@ -42,13 +43,13 @@ export function Navbar() {
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-burgundy-600 text-white shadow-md shadow-burgundy-600/20 group-hover:scale-105 transition-transform">
-            <GraduationCap className="h-5 w-5 text-peach-200" />
+            <HeartHandshake className="h-5 w-5 text-peach-200" />
           </div>
           <div className="flex flex-col">
             <span className="font-heading text-xl font-bold tracking-tight text-slate-heading">
               Skill<span className="text-burgundy-600">Bridge</span>
             </span>
-            <span className="text-[10px] font-medium uppercase tracking-wider text-burgundy-700/80 -mt-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-burgundy-700/80 -mt-1">
               Share • Learn • Repeat
             </span>
           </div>
@@ -101,45 +102,51 @@ export function Navbar() {
                     <span className="text-xs font-bold text-slate-heading leading-none">
                       {currentUser.fullName}
                     </span>
-                    <span className="text-[10px] text-slate-muted leading-tight">
-                      {currentUser.collegeName.split(" ")[0]}
+                    <span className="text-[10px] text-slate-muted leading-tight flex items-center gap-0.5">
+                      <MapPin className="h-2.5 w-2.5 text-burgundy-600" />
+                      {currentUser.neighborhood}
                     </span>
                   </div>
                   <ChevronDown className="h-3.5 w-3.5 text-slate-muted" />
                 </button>
 
                 {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white border border-[#EDE7DE] p-2 shadow-card-hover z-50">
+                  <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-white border border-[#EDE7DE] p-2 shadow-card-hover z-50">
                     <div className="px-3 py-2 border-b border-cream-200">
-                      <p className="text-xs font-semibold text-slate-heading">Active Student Persona</p>
-                      <p className="text-xs text-slate-muted">{currentUser.email}</p>
+                      <p className="text-xs font-semibold text-slate-heading">Active Community Persona</p>
+                      <p className="text-xs text-slate-muted">{currentUser.occupationOrInterest}</p>
                     </div>
 
                     <div className="py-1">
                       <p className="px-3 py-1 text-[10px] font-bold uppercase text-slate-muted tracking-wider">
-                        Quick Switch Demo Persona
+                        Switch Community Persona (Demo)
                       </p>
-                      {INITIAL_STUDENTS.slice(0, 3).map((st) => (
+                      {INITIAL_MEMBERS.map((m) => (
                         <button
-                          key={st.id}
+                          key={m.id}
                           onClick={() => {
-                            loginAsStudent(st.id);
+                            loginAsMember(m.id);
                             setUserDropdownOpen(false);
                           }}
                           className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs transition-colors text-left ${
-                            currentUser.id === st.id
+                            currentUser.id === m.id
                               ? "bg-burgundy-50 text-burgundy-700 font-bold"
                               : "text-slate-body hover:bg-cream-100"
                           }`}
                         >
                           <img
-                            src={st.avatarUrl}
+                            src={m.avatarUrl}
                             alt=""
-                            className="h-5 w-5 rounded-full object-cover"
+                            className="h-6 w-6 rounded-full object-cover"
                           />
-                          <div className="truncate">
-                            <div>{st.fullName}</div>
-                            <div className="text-[10px] text-slate-muted">{st.collegeName}</div>
+                          <div className="truncate flex-1">
+                            <div className="flex items-center justify-between">
+                              <span>{m.fullName} ({m.age})</span>
+                              <span className="text-[10px] text-burgundy-700 font-medium">{m.neighborhood}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-muted truncate">
+                              Teaches: {m.teachingSkills[0]?.name}
+                            </div>
                           </div>
                         </button>
                       ))}
@@ -151,7 +158,7 @@ export function Navbar() {
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2 px-3 py-1.5 text-xs text-slate-heading hover:bg-cream-100 rounded-xl"
                       >
-                        My Profile & Badges
+                        My Community Profile & Badges
                       </Link>
                       <Link
                         href="/admin"
@@ -186,7 +193,7 @@ export function Navbar() {
               <Link href="/auth/signup">
                 <Button variant="primary" size="sm" className="gap-1.5">
                   <Sparkles className="h-4 w-4 text-peach-200" />
-                  Join the Bridge
+                  Join the Community
                 </Button>
               </Link>
             </>
@@ -238,7 +245,7 @@ export function Navbar() {
                   />
                   <div>
                     <div className="text-xs font-bold text-slate-heading">{currentUser.fullName}</div>
-                    <div className="text-[10px] text-slate-muted">{currentUser.collegeName}</div>
+                    <div className="text-[10px] text-slate-muted">{currentUser.neighborhood}, {currentUser.city}</div>
                   </div>
                 </div>
                 <Badge variant="peach">{currentUser.skillPointsBalance} pts</Badge>
@@ -253,7 +260,7 @@ export function Navbar() {
                 <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="primary" className="w-full justify-center gap-2">
                     <Sparkles className="h-4 w-4 text-peach-200" />
-                    Join the Bridge
+                    Join the Community
                   </Button>
                 </Link>
               </>

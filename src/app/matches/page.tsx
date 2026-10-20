@@ -6,36 +6,32 @@ import {
   Sparkles, 
   Users, 
   Star, 
-  CheckCircle2, 
   Clock, 
-  Languages, 
-  Laptop, 
-  Award, 
+  MapPin, 
+  HeartHandshake, 
   ArrowRight,
-  Filter,
   Check,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_STUDENTS, StudentProfile } from "@/lib/data/mock-data";
+import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
 import { calculateMatchScore } from "@/lib/matching";
 
 export default function MyMatchesPage() {
   const { currentUser } = useAuth();
   const [minMatchScore, setMinMatchScore] = useState<number>(60);
-  const [proposalStudent, setProposalStudent] = useState<StudentProfile | null>(null);
+  const [proposalMember, setProposalMember] = useState<CommunityMember | null>(null);
   const [proposalSent, setProposalSent] = useState(false);
   const [note, setNote] = useState("");
 
   if (!currentUser) {
     return (
       <div className="mx-auto max-w-xl text-center py-24 px-4">
-        <h2 className="text-xl font-bold text-slate-heading">Sign in to calculate your matches</h2>
-        <p className="text-xs text-slate-muted mt-2">Discover students whose skills perfectly complement yours.</p>
+        <h2 className="text-xl font-bold text-slate-heading">Sign in to calculate your community matches</h2>
+        <p className="text-xs text-slate-muted mt-2">Discover neighbors whose skills complement yours.</p>
         <Link href="/auth/login" className="mt-4 inline-block">
           <Button>Sign In</Button>
         </Link>
@@ -44,8 +40,8 @@ export default function MyMatchesPage() {
   }
 
   // Calculate scores for all other candidates
-  const scoredCandidates = INITIAL_STUDENTS
-    .filter((s) => s.id !== currentUser.id)
+  const scoredCandidates = INITIAL_MEMBERS
+    .filter((m) => m.id !== currentUser.id)
     .map((candidate) => ({
       candidate,
       match: calculateMatchScore(currentUser, candidate),
@@ -57,7 +53,7 @@ export default function MyMatchesPage() {
     e.preventDefault();
     setProposalSent(true);
     setTimeout(() => {
-      setProposalStudent(null);
+      setProposalMember(null);
       setProposalSent(false);
       setNote("");
     }, 1200);
@@ -67,12 +63,12 @@ export default function MyMatchesPage() {
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-2">
-        <Badge variant="burgundy">Algorithmic Compatibility Engine</Badge>
+        <Badge variant="burgundy">6-Factor Community Matching Engine</Badge>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-heading">
-          Your Recommended Peer Matches
+          Your Recommended Community Matches
         </h1>
         <p className="text-xs sm:text-sm text-slate-muted max-w-xl mx-auto">
-          Scored across 6 weighted dimensions: complementary skills (50%), shared free days (15%), language (10%), level compatibility (10%), mode (10%), and reputation (5%).
+          Scored across 6 weighted dimensions: complementary skills (50%), shared free days (15%), spoken language (10%), level compatibility (10%), neighborhood/mode proximity (10%), and karma reputation (5%).
         </p>
       </div>
 
@@ -98,7 +94,7 @@ export default function MyMatchesPage() {
         </div>
 
         <div className="text-slate-muted">
-          Showing <strong>{scoredCandidates.length}</strong> highly compatible peers
+          Showing <strong>{scoredCandidates.length}</strong> compatible community members
         </div>
       </div>
 
@@ -116,16 +112,19 @@ export default function MyMatchesPage() {
                     className="h-14 w-14 rounded-2xl object-cover border-2 border-peach-300 shadow-sm"
                   />
                   <div>
-                    <h3 className="text-lg font-bold text-slate-heading">{candidate.fullName}</h3>
-                    <p className="text-xs text-slate-muted">
-                      {candidate.collegeName} • {candidate.major} &apos;{candidate.graduationYear.toString().slice(-2)}
+                    <h3 className="text-lg font-bold text-slate-heading">
+                      {candidate.fullName} ({candidate.age})
+                    </h3>
+                    <p className="text-xs text-slate-muted flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-burgundy-600" />
+                      {candidate.neighborhood}, {candidate.city}
                     </p>
                     <div className="flex items-center gap-2 mt-1 text-xs">
                       <span className="flex items-center gap-1 text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                         <Star className="h-3 w-3 fill-amber-400" />
                         {candidate.averageRating.toFixed(1)}
                       </span>
-                      <span className="text-slate-muted">• {candidate.totalSessions} sessions</span>
+                      <span className="text-slate-muted">• {candidate.totalSessions} community swaps</span>
                     </div>
                   </div>
                 </div>
@@ -179,8 +178,8 @@ export default function MyMatchesPage() {
                     <div className="text-slate-muted">Level</div>
                   </div>
                   <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.modeScore}/10</div>
-                    <div className="text-slate-muted">Mode</div>
+                    <div className="font-bold text-slate-heading">{match.modeGeoScore}/10</div>
+                    <div className="text-slate-muted">Loc/Mode</div>
                   </div>
                   <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
                     <div className="font-bold text-slate-heading">{match.reputationScore}/5</div>
@@ -198,7 +197,7 @@ export default function MyMatchesPage() {
               <Button
                 size="sm"
                 variant="primary"
-                onClick={() => setProposalStudent(candidate)}
+                onClick={() => setProposalMember(candidate)}
                 className="gap-1.5 text-xs"
               >
                 <Sparkles className="h-3.5 w-3.5 text-peach-200" />
@@ -210,25 +209,25 @@ export default function MyMatchesPage() {
       </div>
 
       {/* Request Exchange Modal */}
-      {proposalStudent && (
+      {proposalMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-[#EDE7DE] space-y-4">
             <div className="flex items-start justify-between pb-3 border-b border-cream-200">
               <div className="flex items-center gap-3">
                 <img
-                  src={proposalStudent.avatarUrl}
+                  src={proposalMember.avatarUrl}
                   alt=""
                   className="h-10 w-10 rounded-full object-cover"
                 />
                 <div>
                   <h3 className="text-sm font-bold text-slate-heading">
-                    Request Swap with {proposalStudent.fullName}
+                    Request Swap with {proposalMember.fullName} ({proposalMember.age})
                   </h3>
-                  <p className="text-xs text-slate-muted">{proposalStudent.collegeName}</p>
+                  <p className="text-xs text-slate-muted">{proposalMember.neighborhood}, {proposalMember.city}</p>
                 </div>
               </div>
               <button
-                onClick={() => setProposalStudent(null)}
+                onClick={() => setProposalMember(null)}
                 className="text-slate-muted hover:text-slate-heading"
               >
                 <X className="h-5 w-5" />
@@ -242,7 +241,7 @@ export default function MyMatchesPage() {
                 </div>
                 <h4 className="text-sm font-bold text-slate-heading">Proposal Dispatched!</h4>
                 <p className="text-xs text-slate-muted">
-                  {proposalStudent.fullName.split(" ")[0]} has been notified. Check your dashboard for confirmation.
+                  {proposalMember.fullName.split(" ")[0]} has been notified. Check your dashboard for updates.
                 </p>
               </div>
             ) : (
@@ -252,20 +251,20 @@ export default function MyMatchesPage() {
                     Proposed Meeting Window:
                   </label>
                   <select className="w-full h-10 rounded-xl border border-[#EDE7DE] text-xs px-3 bg-cream-50">
-                    <option>Tomorrow at 5:00 PM IST</option>
-                    <option>Saturday at 11:00 AM IST</option>
+                    <option>Saturday at 10:00 AM IST</option>
                     <option>Sunday at 4:00 PM IST</option>
+                    <option>Wednesday at 6:30 PM IST</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-heading mb-1">
-                    Introduction Message:
+                    Friendly Neighborhood Note:
                   </label>
                   <textarea
                     rows={3}
                     required
-                    placeholder="Hi! I noticed we have a 92% match score. I'd love to swap Next.js walkthroughs for your C++ Dynamic Programming tips..."
+                    placeholder="Hello! I saw our 94% match score and would love to swap..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     className="w-full rounded-xl border border-[#EDE7DE] p-2.5 text-xs text-slate-heading focus:border-burgundy-600 focus:outline-none"
@@ -277,7 +276,7 @@ export default function MyMatchesPage() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setProposalStudent(null)}
+                    onClick={() => setProposalMember(null)}
                   >
                     Cancel
                   </Button>

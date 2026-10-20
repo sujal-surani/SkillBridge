@@ -7,20 +7,20 @@ import {
   Paperclip, 
   Calendar, 
   Video, 
-  MoreVertical, 
   CheckCheck, 
-  Clock, 
-  GraduationCap, 
+  MapPin, 
   Search,
-  FileCode,
+  FileText,
   Sparkles,
-  X
+  X,
+  Palette,
+  HeartPulse
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_STUDENTS } from "@/lib/data/mock-data";
+import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
 
 interface ChatMessage {
   id: string;
@@ -31,72 +31,72 @@ interface ChatMessage {
   isSelf: boolean;
   attachment?: {
     name: string;
-    type: "code" | "file";
+    type: "file" | "doc";
     size: string;
   };
 }
 
 export default function ChatPage() {
   const { currentUser } = useAuth();
-  const [activePeerId, setActivePeerId] = useState("student-2"); // Priya Patel
+  const [activePeerId, setActivePeerId] = useState("member-2"); // Kavita Nair (Yoga)
   const [inputText, setInputText] = useState("");
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
-  const [scheduledSlot, setScheduledSlot] = useState("Tomorrow at 5:00 PM IST");
+  const [scheduledSlot, setScheduledSlot] = useState("Saturday at 10:00 AM IST");
   const [sessionScheduled, setSessionScheduled] = useState(false);
 
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
-    "student-2": [
+    "member-2": [
       {
         id: "msg-1",
-        senderId: "student-2",
-        senderName: "Priya Patel",
-        text: "Hey Aarav! Thanks for connecting on SkillBridge. I saw you're building with Next.js 14 Server Actions.",
-        timestamp: "2:10 PM",
+        senderId: "member-2",
+        senderName: "Kavita Nair",
+        text: "Namaste Pooja! I saw your stunning botanical watercolor illustrations. I have always wanted to learn wet-on-wet landscape painting.",
+        timestamp: "10:10 AM",
         isSelf: false,
       },
       {
         id: "msg-2",
-        senderId: "student-1",
-        senderName: "Aarav Sharma",
-        text: "Hey Priya! Yes, I love App Router. And I saw your LeetCode profile—450+ solved in C++ is incredible! I'm struggling with Grid Dynamic Programming.",
-        timestamp: "2:14 PM",
+        senderId: "member-1",
+        senderName: "Pooja Sharma",
+        text: "Namaste Kavitaji! Thank you so much! And I desperately need your help with morning Hatha Yoga stretches—my neck and upper back get so stiff after hours at the easel.",
+        timestamp: "10:14 AM",
         isSelf: true,
       },
       {
         id: "msg-3",
-        senderId: "student-2",
-        senderName: "Priya Patel",
-        text: "I can totally help you with DP recurrence relations! Here's a quick cheat-sheet snippet I made for my VJTI batchmates:",
-        timestamp: "2:16 PM",
-        isSelf: false,
+        senderId: "member-1",
+        senderName: "Pooja Sharma",
+        text: "Here is a quick reference guide on beginner watercolor paints and cold-pressed 300 GSM paper before our session:",
+        timestamp: "10:16 AM",
+        isSelf: true,
         attachment: {
-          name: "dp_state_transitions.cpp",
-          type: "code",
-          size: "3.4 KB",
+          name: "watercolor_palette_brush_guide.pdf",
+          type: "file",
+          size: "1.4 MB",
         },
       },
       {
         id: "msg-4",
-        senderId: "student-2",
-        senderName: "Priya Patel",
-        text: "Should we hop on a 60-min session tomorrow in the SkillBridge Learning Room?",
-        timestamp: "2:18 PM",
+        senderId: "member-2",
+        senderName: "Kavita Nair",
+        text: "This guide is wonderful! Let's do a 60-min exchange this Saturday at 10 AM in the SkillBridge Learning Room. We'll start with 30 mins of gentle spine alignment yoga, followed by a watercolor sky wash tutorial!",
+        timestamp: "10:18 AM",
         isSelf: false,
       },
     ],
-    "student-3": [
+    "member-3": [
       {
         id: "msg-10",
-        senderId: "student-3",
-        senderName: "Rohan Verma",
-        text: "Hi Aarav, quick question about your Docker deployment on AWS ECS?",
+        senderId: "member-3",
+        senderName: "Ramesh Kulkarni",
+        text: "Namaste! I would love to learn how you sketch botanical flowers from the garden.",
         timestamp: "Yesterday",
         isSelf: false,
       },
     ],
   });
 
-  const activePeer = INITIAL_STUDENTS.find((s) => s.id === activePeerId) || INITIAL_STUDENTS[1];
+  const activePeer = INITIAL_MEMBERS.find((m) => m.id === activePeerId) || INITIAL_MEMBERS[1];
   const currentThread = messages[activePeerId] || [];
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -105,8 +105,8 @@ export default function ChatPage() {
 
     const newMsg: ChatMessage = {
       id: "msg-" + Date.now(),
-      senderId: currentUser?.id || "student-1",
-      senderName: currentUser?.fullName || "Aarav Sharma",
+      senderId: currentUser?.id || "member-1",
+      senderName: currentUser?.fullName || "Pooja Sharma",
       text: inputText.trim(),
       timestamp: "Just now",
       isSelf: true,
@@ -126,12 +126,11 @@ export default function ChatPage() {
       setScheduleModalOpen(false);
       setSessionScheduled(false);
 
-      // Append confirmation message to chat
       const confirmMsg: ChatMessage = {
         id: "msg-sched-" + Date.now(),
-        senderId: currentUser?.id || "student-1",
-        senderName: currentUser?.fullName || "Aarav Sharma",
-        text: `📅 Session proposed for ${scheduledSlot}. Once accepted, meeting room #SB-482 will be active!`,
+        senderId: currentUser?.id || "member-1",
+        senderName: currentUser?.fullName || "Pooja Sharma",
+        text: `📅 Community exchange scheduled for ${scheduledSlot}. Room #SB-482 is ready!`,
         timestamp: "Just now",
         isSelf: true,
       };
@@ -150,7 +149,7 @@ export default function ChatPage() {
         {/* Left Pane: Conversations List */}
         <div className="border-r border-[#EDE7DE] bg-cream-50/50 flex flex-col">
           <div className="p-4 border-b border-[#EDE7DE] space-y-3">
-            <h2 className="text-base font-bold text-slate-heading">Direct Peer Messages</h2>
+            <h2 className="text-base font-bold text-slate-heading">Community Messages</h2>
             <div className="relative">
               <Input
                 placeholder="Search conversations..."
@@ -161,32 +160,34 @@ export default function ChatPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-cream-200">
-            {INITIAL_STUDENTS.slice(1, 4).map((st) => {
-              const isSelected = st.id === activePeerId;
+            {INITIAL_MEMBERS.slice(1, 4).map((m) => {
+              const isSelected = m.id === activePeerId;
               return (
                 <button
-                  key={st.id}
-                  onClick={() => setActivePeerId(st.id)}
+                  key={m.id}
+                  onClick={() => setActivePeerId(m.id)}
                   className={`w-full p-3.5 text-left flex items-start gap-3 transition-colors ${
                     isSelected ? "bg-white border-l-4 border-l-burgundy-600 shadow-xs" : "hover:bg-cream-100/70"
                   }`}
                 >
                   <div className="relative">
                     <img
-                      src={st.avatarUrl}
-                      alt={st.fullName}
+                      src={m.avatarUrl}
+                      alt={m.fullName}
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-slate-heading truncate">{st.fullName}</p>
-                      <span className="text-[10px] text-slate-muted">2:18 PM</span>
+                      <p className="text-xs font-bold text-slate-heading truncate">
+                        {m.fullName} ({m.age})
+                      </p>
+                      <span className="text-[10px] text-slate-muted">10:18 AM</span>
                     </div>
-                    <p className="text-[11px] text-slate-muted truncate mt-0.5">{st.collegeName}</p>
+                    <p className="text-[11px] text-slate-muted truncate mt-0.5">{m.neighborhood}, {m.city.split(",")[0]}</p>
                     <p className="text-[11px] text-slate-heading/80 truncate mt-1">
-                      {st.id === "student-2" ? "Should we hop on a session?" : "Let's swap notes!"}
+                      {m.id === "member-2" ? "Let's do a 60-min exchange!" : "Botanical flower sketches"}
                     </p>
                   </div>
                 </button>
@@ -210,9 +211,12 @@ export default function ChatPage() {
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-heading">{activePeer.fullName}</h3>
+                <h3 className="text-sm font-bold text-slate-heading">
+                  {activePeer.fullName} ({activePeer.age})
+                </h3>
                 <p className="text-[11px] text-slate-muted flex items-center gap-1">
-                  <span>{activePeer.collegeName}</span>
+                  <MapPin className="h-3 w-3 text-burgundy-600" />
+                  <span>{activePeer.neighborhood}, {activePeer.city}</span>
                   <span>• Offers {activePeer.teachingSkills[0]?.name}</span>
                 </p>
               </div>
@@ -226,7 +230,7 @@ export default function ChatPage() {
                 className="text-xs gap-1.5 h-8"
               >
                 <Calendar className="h-3.5 w-3.5 text-burgundy-700" />
-                Schedule Session
+                Schedule Swap
               </Button>
               <Link href="/room/SB-482">
                 <Button variant="primary" size="sm" className="text-xs gap-1.5 h-8">
@@ -241,7 +245,7 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             <div className="text-center my-2">
               <span className="text-[10px] uppercase font-bold text-slate-muted bg-cream-200/60 px-3 py-1 rounded-full">
-                Knowledge Swap Thread • End-to-End Encrypted
+                SkillBridge Exchange Thread • End-to-End Encrypted
               </span>
             </div>
 
@@ -263,7 +267,7 @@ export default function ChatPage() {
                   {msg.attachment && (
                     <div className="mt-2.5 p-2 rounded-xl bg-cream-100 border border-cream-200 flex items-center gap-2.5 text-slate-heading">
                       <div className="h-7 w-7 rounded-lg bg-burgundy-100 text-burgundy-700 flex items-center justify-center">
-                        <FileCode className="h-4 w-4" />
+                        <FileText className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold truncate text-[11px]">{msg.attachment.name}</p>
@@ -288,7 +292,7 @@ export default function ChatPage() {
               <button
                 type="button"
                 className="p-2 text-slate-muted hover:text-burgundy-600 hover:bg-cream-100 rounded-xl"
-                title="Attach code snippet or file"
+                title="Attach artwork reference or guide"
               >
                 <Paperclip className="h-4 w-4" />
               </button>
@@ -317,9 +321,9 @@ export default function ChatPage() {
             <div className="flex items-start justify-between pb-3 border-b border-cream-200">
               <div>
                 <h3 className="text-sm font-bold text-slate-heading">
-                  Schedule 1-on-1 Learning Session
+                  Schedule Community Exchange
                 </h3>
-                <p className="text-xs text-slate-muted">With {activePeer.fullName} ({activePeer.collegeName})</p>
+                <p className="text-xs text-slate-muted">With {activePeer.fullName} ({activePeer.neighborhood})</p>
               </div>
               <button
                 onClick={() => setScheduleModalOpen(false)}
@@ -334,8 +338,8 @@ export default function ChatPage() {
                 <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                   <Calendar className="h-6 w-6" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-heading">Session Scheduled!</h4>
-                <p className="text-xs text-slate-muted">Invitation added to chat and your student dashboard.</p>
+                <h4 className="text-sm font-bold text-slate-heading">Exchange Scheduled!</h4>
+                <p className="text-xs text-slate-muted">Added to chat and your community dashboard.</p>
               </div>
             ) : (
               <form onSubmit={handleConfirmSchedule} className="space-y-3.5">
@@ -348,9 +352,9 @@ export default function ChatPage() {
                     onChange={(e) => setScheduledSlot(e.target.value)}
                     className="w-full h-10 rounded-xl border border-[#EDE7DE] text-xs px-3 bg-cream-50"
                   >
-                    <option value="Tomorrow at 5:00 PM IST">Tomorrow at 5:00 PM IST</option>
-                    <option value="Saturday at 11:00 AM IST">Saturday at 11:00 AM IST</option>
+                    <option value="Saturday at 10:00 AM IST">Saturday at 10:00 AM IST</option>
                     <option value="Sunday at 4:00 PM IST">Sunday at 4:00 PM IST</option>
+                    <option value="Tuesday at 5:00 PM IST">Tuesday at 5:00 PM IST</option>
                   </select>
                 </div>
 
@@ -359,12 +363,12 @@ export default function ChatPage() {
                     Exchange Focus:
                   </label>
                   <p className="text-xs p-2.5 rounded-xl bg-cream-100 border border-cream-200 text-slate-heading">
-                    Next.js Server Actions (Aarav) ⇄ C++ Dynamic Programming (Priya)
+                    Watercolor Landscape Washes (Pooja) ⇄ Morning Hatha Yoga (Kavita)
                   </p>
                 </div>
 
                 <div className="p-3 rounded-xl bg-peach-50 border border-peach-200 text-[11px] text-burgundy-800">
-                  ⚡ <strong>Note:</strong> Both peers will earn <strong>+25 Skill Points</strong> upon completion and review submission.
+                  ⚡ <strong>Community Karma:</strong> Both members earn <strong>+25 Skill Points</strong> upon mutual exchange review.
                 </div>
 
                 <div className="pt-2 flex items-center justify-end gap-2">

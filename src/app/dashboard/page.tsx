@@ -14,17 +14,18 @@ import {
   CheckCircle2, 
   XCircle, 
   MessageSquare, 
-  AlertCircle,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
+  MapPin,
+  HeartHandshake,
+  Sprout,
+  Laptop,
+  HeartPulse,
   BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_STUDENTS } from "@/lib/data/mock-data";
+import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
 import { calculateMatchScore } from "@/lib/matching";
 
 export default function DashboardPage() {
@@ -32,13 +33,14 @@ export default function DashboardPage() {
   const [requests, setRequests] = useState([
     {
       id: "req-1",
-      senderName: "Priya Patel",
-      senderCollege: "VJTI Mumbai",
-      senderAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=128",
-      offeredSkill: "C++ Data Structures & Algorithms",
-      requestedSkill: "Next.js & React",
-      proposedTime: "Tomorrow at 5:00 PM IST",
-      message: "Hey! Loved your Next.js project on GitHub. Can we do a 1-hour session swapping Next.js basics for Dynamic Programming?",
+      senderName: "Kavita Nair",
+      senderAge: 39,
+      senderLocation: "Panampilly Nagar, Kochi",
+      senderAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=128",
+      offeredSkill: "Morning Hatha Yoga & Posture",
+      requestedSkill: "Watercolor Landscape Painting & Washes",
+      proposedTime: "Saturday at 10:00 AM IST",
+      message: "Namaste Pooja! I've been admiring your watercolor sketches. I'd love to guide you through restorative Hatha Yoga stretches to release easel tension in exchange for a beginner sky wash demo!",
       status: "PENDING",
     },
   ]);
@@ -46,8 +48,8 @@ export default function DashboardPage() {
   if (!currentUser) {
     return (
       <div className="mx-auto max-w-xl text-center py-24 px-4">
-        <h2 className="text-xl font-bold text-slate-heading">Sign in to view your dashboard</h2>
-        <p className="text-xs text-slate-muted mt-2">Access your matches, scheduled rooms, and skill points balance.</p>
+        <h2 className="text-xl font-bold text-slate-heading">Sign in to view your community dashboard</h2>
+        <p className="text-xs text-slate-muted mt-2">Access your matches, scheduled sessions, and karma points.</p>
         <Link href="/auth/login" className="mt-4 inline-block">
           <Button>Sign In</Button>
         </Link>
@@ -55,9 +57,9 @@ export default function DashboardPage() {
     );
   }
 
-  // Calculate algorithmic matches against other peers
-  const candidateMatches = INITIAL_STUDENTS
-    .filter((s) => s.id !== currentUser.id)
+  // Calculate algorithmic matches against other community candidates
+  const candidateMatches = INITIAL_MEMBERS
+    .filter((m) => m.id !== currentUser.id)
     .map((candidate) => ({
       candidate,
       match: calculateMatchScore(currentUser, candidate),
@@ -80,7 +82,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-      {/* Top Bento Header: Profile & Points Summary */}
+      {/* Top Bento Header */}
       <div className="rounded-3xl bg-gradient-to-r from-cream-100 via-white to-peach-50/70 border border-[#EDE7DE] p-6 sm:p-8 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img
@@ -91,12 +93,13 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-slate-heading">
-                Welcome back, {currentUser.fullName.split(" ")[0]}!
+                Welcome, {currentUser.fullName.split(" ")[0]}!
               </h1>
-              <Badge variant="burgundy">Level 3 Peer</Badge>
+              <Badge variant="burgundy">Community Mentor</Badge>
             </div>
-            <p className="text-xs text-slate-muted mt-1">
-              {currentUser.collegeName} • {currentUser.major} • Class of {currentUser.graduationYear}
+            <p className="text-xs text-slate-muted mt-1 flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-burgundy-600" />
+              {currentUser.neighborhood}, {currentUser.city} • {currentUser.occupationOrInterest}
             </p>
           </div>
         </div>
@@ -123,7 +126,7 @@ export default function DashboardPage() {
               <div className="text-sm font-extrabold text-slate-heading">
                 {currentUser.averageRating.toFixed(1)} / 5.0
               </div>
-              <div className="text-[10px] text-slate-muted font-medium">Peer Rating</div>
+              <div className="text-[10px] text-slate-muted font-medium">Neighbor Rating</div>
             </div>
           </div>
 
@@ -135,7 +138,7 @@ export default function DashboardPage() {
               <div className="text-sm font-extrabold text-slate-heading">
                 {currentUser.totalSessions}
               </div>
-              <div className="text-[10px] text-slate-muted font-medium">Completed Swaps</div>
+              <div className="text-[10px] text-slate-muted font-medium">Exchanges Completed</div>
             </div>
           </div>
         </div>
@@ -147,19 +150,21 @@ export default function DashboardPage() {
         {/* Left 2 Columns */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Card 1: Upcoming Confirmed Learning Room */}
+          {/* Card 1: Next Confirmed Learning Session */}
           <Card className="border-l-4 border-l-burgundy-600">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
                   <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-xs font-bold text-burgundy-700 uppercase tracking-wider">
-                    Next Scheduled Session
+                    Next Scheduled Exchange
                   </span>
                 </div>
-                <CardTitle className="mt-1">C++ Dynamic Programming & Trees</CardTitle>
+                <CardTitle className="mt-1">
+                  Watercolor Landscape Painting ⇄ Hatha Yoga Postures
+                </CardTitle>
                 <CardDescription>
-                  Swapping with Priya Patel (VJTI Mumbai) • In exchange for your Next.js walkthrough
+                  Swapping with Kavita Nair (Panampilly Nagar, Kochi)
                 </CardDescription>
               </div>
               <Badge variant="match">Confirmed</Badge>
@@ -169,8 +174,8 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-burgundy-600" />
                   <div className="text-xs">
-                    <p className="font-bold text-slate-heading">Tomorrow, 5:00 PM – 6:00 PM IST</p>
-                    <p className="text-slate-muted">60 Minutes • Virtual Learning Room #SB-482</p>
+                    <p className="font-bold text-slate-heading">Saturday, 10:00 AM – 11:00 AM IST</p>
+                    <p className="text-slate-muted">60 Minutes • Virtual Learning Room #SB-482 / Notes Shared</p>
                   </div>
                 </div>
 
@@ -192,15 +197,15 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Card 2: Top Algorithmic Match Recommendation */}
+          {/* Card 2: Top Algorithmic Match */}
           {topMatch && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <Badge variant="peach" className="mb-1">Algorithmic Best Fit</Badge>
-                  <CardTitle>Recommended Peer Match</CardTitle>
+                  <CardTitle>Recommended Community Match</CardTitle>
                   <CardDescription>
-                    Based on your target learning goal: {currentUser.learningSkills[0]?.name}
+                    Looking to learn: {currentUser.learningSkills[0]?.name}
                   </CardDescription>
                 </div>
                 <div className="text-right">
@@ -223,14 +228,15 @@ export default function DashboardPage() {
                     />
                     <div>
                       <h4 className="text-sm font-bold text-slate-heading">
-                        {topMatch.candidate.fullName}
+                        {topMatch.candidate.fullName} ({topMatch.candidate.age})
                       </h4>
-                      <p className="text-xs text-slate-muted">
-                        {topMatch.candidate.collegeName} • {topMatch.candidate.major}
+                      <p className="text-xs text-slate-muted flex items-center gap-1">
+                        <MapPin className="h-3 w-3 text-burgundy-600" />
+                        {topMatch.candidate.neighborhood}, {topMatch.candidate.city.split(",")[0]}
                       </p>
                       <div className="flex items-center gap-1 text-[11px] text-amber-600 font-semibold mt-0.5">
                         <Star className="h-3 w-3 fill-amber-400" />
-                        {topMatch.candidate.averageRating.toFixed(1)} rating ({topMatch.candidate.totalSessions} sessions)
+                        {topMatch.candidate.averageRating.toFixed(1)} rating ({topMatch.candidate.totalSessions} swaps)
                       </div>
                     </div>
                   </div>
@@ -257,9 +263,9 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-white border border-[#EDE7DE] col-span-2 sm:col-span-1">
-                    <span className="text-[10px] text-slate-muted uppercase font-bold block">Overlap Mode:</span>
-                    <span className="font-semibold text-slate-heading block">
-                      {topMatch.candidate.modePreference} ({topMatch.candidate.languages.join(", ")})
+                    <span className="text-[10px] text-slate-muted uppercase font-bold block">Mode & Spoken:</span>
+                    <span className="font-semibold text-slate-heading block truncate">
+                      {topMatch.candidate.modePreference} ({topMatch.candidate.spokenLanguages.slice(0, 2).join(", ")})
                     </span>
                   </div>
                 </div>
@@ -271,8 +277,8 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Pending Exchange Requests</CardTitle>
-                <CardDescription>Peers who requested to trade skills with you</CardDescription>
+                <CardTitle>Incoming Swap Proposals</CardTitle>
+                <CardDescription>Community members wanting to learn with you</CardDescription>
               </div>
               <Badge variant="outline">{requests.filter(r => r.status === "PENDING").length} Pending</Badge>
             </CardHeader>
@@ -290,8 +296,10 @@ export default function DashboardPage() {
                         className="h-10 w-10 rounded-full object-cover"
                       />
                       <div>
-                        <h4 className="text-xs font-bold text-slate-heading">{req.senderName}</h4>
-                        <p className="text-[11px] text-slate-muted">{req.senderCollege}</p>
+                        <h4 className="text-xs font-bold text-slate-heading">
+                          {req.senderName} ({req.senderAge})
+                        </h4>
+                        <p className="text-[11px] text-slate-muted">{req.senderLocation}</p>
                       </div>
                     </div>
                     <Badge variant={req.status === "PENDING" ? "peach" : req.status === "ACCEPTED" ? "success" : "default"}>
@@ -332,7 +340,7 @@ export default function DashboardPage() {
                     {req.status === "ACCEPTED" && (
                       <Link href="/room/SB-482">
                         <Button size="sm" variant="peach" className="text-xs h-8">
-                          Open Room Details
+                          Open Session Workspace
                         </Button>
                       </Link>
                     )}
@@ -350,7 +358,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">My Skills Portfolio</CardTitle>
-              <CardDescription>What you trade across the network</CardDescription>
+              <CardDescription>What you offer & seek across the network</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-xs">
               <div>
@@ -374,7 +382,7 @@ export default function DashboardPage() {
 
               <div>
                 <span className="font-bold text-slate-heading uppercase tracking-wider text-[10px] block mb-1.5 text-emerald-700">
-                  Target Learning Goals:
+                  Looking to Learn:
                 </span>
                 <div className="space-y-1.5">
                   {currentUser.learningSkills.map((sk) => (
@@ -403,8 +411,8 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-base">Campus Doubts</CardTitle>
-                <CardDescription>Help a peer & earn +15 karma</CardDescription>
+                <CardTitle className="text-base">Neighborhood Q&A</CardTitle>
+                <CardDescription>Help a neighbor & earn +15 karma</CardDescription>
               </div>
               <Link href="/community">
                 <Button variant="ghost" size="sm" className="text-xs h-7">
@@ -416,30 +424,30 @@ export default function DashboardPage() {
               <div className="p-3 rounded-xl bg-cream-100 border border-cream-200 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-heading line-clamp-1">
-                    Memoization vs Tabulation in DP Grid
+                    Preventing watercolor paper from buckling
                   </span>
                   <Badge variant="success">Solved</Badge>
                 </div>
                 <p className="text-slate-muted text-[11px] line-clamp-2">
-                  Asked by Tanvi Deshmukh • Answered by Priya Patel
+                  Asked by Siddharth (Bengaluru) • Answered by Pooja Sharma
                 </p>
               </div>
 
               <div className="p-3 rounded-xl bg-cream-100 border border-cream-200 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-heading line-clamp-1">
-                    Server Actions vs Route Handlers
+                    Gentle yoga postures for desk neck stiffness
                   </span>
-                  <Badge variant="peach">Open</Badge>
+                  <Badge variant="peach">Active</Badge>
                 </div>
                 <p className="text-slate-muted text-[11px] line-clamp-2">
-                  Asked by Kabir Mehta (RVCE Bengaluru)
+                  Asked by Harish Patel (Ahmedabad) • Answered by Kavita
                 </p>
               </div>
 
               <Link href="/community" className="block pt-1">
                 <Button variant="primary" size="sm" className="w-full text-xs">
-                  Post a Question
+                  Ask a Community Question
                 </Button>
               </Link>
             </CardContent>

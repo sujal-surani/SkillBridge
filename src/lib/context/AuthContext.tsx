@@ -1,17 +1,17 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { INITIAL_STUDENTS, StudentProfile } from "@/lib/data/mock-data";
+import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
 
 interface AuthContextType {
-  currentUser: StudentProfile | null;
+  currentUser: CommunityMember | null;
   isAdmin: boolean;
-  loginAsStudent: (studentId: string) => void;
+  loginAsMember: (memberId: string) => void;
   loginAsAdmin: () => void;
   logout: () => void;
   updateUserSkills: (
-    teaching: StudentProfile["teachingSkills"],
-    learning: StudentProfile["learningSkills"]
+    teaching: CommunityMember["teachingSkills"],
+    learning: CommunityMember["learningSkills"]
   ) => void;
   addSkillPoints: (points: number) => void;
 }
@@ -19,12 +19,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // Default to Aarav Sharma (student-1)
-  const [currentUser, setCurrentUser] = useState<StudentProfile | null>(INITIAL_STUDENTS[0]);
+  // Default to Ramesh Kulkarni (member-1)
+  const [currentUser, setCurrentUser] = useState<CommunityMember | null>(INITIAL_MEMBERS[0]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("skillbridge_user");
+    const saved = localStorage.getItem("skillbridge_community_user");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -35,12 +35,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const loginAsStudent = (studentId: string) => {
-    const found = INITIAL_STUDENTS.find((s) => s.id === studentId);
+  const loginAsMember = (memberId: string) => {
+    const found = INITIAL_MEMBERS.find((m) => m.id === memberId);
     if (found) {
       setCurrentUser(found);
       setIsAdmin(false);
-      localStorage.setItem("skillbridge_user", JSON.stringify(found));
+      localStorage.setItem("skillbridge_community_user", JSON.stringify(found));
     }
   };
 
@@ -51,12 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setCurrentUser(null);
     setIsAdmin(false);
-    localStorage.removeItem("skillbridge_user");
+    localStorage.removeItem("skillbridge_community_user");
   };
 
   const updateUserSkills = (
-    teaching: StudentProfile["teachingSkills"],
-    learning: StudentProfile["learningSkills"]
+    teaching: CommunityMember["teachingSkills"],
+    learning: CommunityMember["learningSkills"]
   ) => {
     if (!currentUser) return;
     const updated = {
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       learningSkills: learning,
     };
     setCurrentUser(updated);
-    localStorage.setItem("skillbridge_user", JSON.stringify(updated));
+    localStorage.setItem("skillbridge_community_user", JSON.stringify(updated));
   };
 
   const addSkillPoints = (points: number) => {
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       skillPointsBalance: currentUser.skillPointsBalance + points,
     };
     setCurrentUser(updated);
-    localStorage.setItem("skillbridge_user", JSON.stringify(updated));
+    localStorage.setItem("skillbridge_community_user", JSON.stringify(updated));
   };
 
   return (
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         currentUser,
         isAdmin,
-        loginAsStudent,
+        loginAsMember,
         loginAsAdmin,
         logout,
         updateUserSkills,

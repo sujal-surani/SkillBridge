@@ -9,7 +9,7 @@ import {
   Lock, 
   LogOut, 
   CheckCircle2, 
-  Sparkles,
+  MapPin,
   Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
 
-  const [name, setName] = useState(currentUser?.fullName || "Aarav Sharma");
-  const [city, setCity] = useState(currentUser?.city || "Mumbai, MH");
+  const [name, setName] = useState(currentUser?.fullName || "Pooja Sharma");
+  const [neighborhood, setNeighborhood] = useState(currentUser?.neighborhood || "C-Scheme");
+  const [city, setCity] = useState(currentUser?.city || "Jaipur, RJ");
   const [allowPublicSearch, setAllowPublicSearch] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -42,7 +43,7 @@ export default function SettingsPage() {
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8 space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-heading">Settings & Preferences</h1>
-        <p className="text-xs text-slate-muted mt-1">Manage your student account, privacy controls, and security.</p>
+        <p className="text-xs text-slate-muted mt-1">Manage your community member account, neighborhood privacy, and security.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -52,7 +53,7 @@ export default function SettingsPage() {
             <User className="h-4 w-4" /> Account Details
           </button>
           <button className="w-full text-left p-3 rounded-2xl bg-cream-100 hover:bg-white text-slate-muted font-medium text-xs flex items-center gap-2 transition-colors">
-            <Shield className="h-4 w-4" /> Privacy & Visibility
+            <Shield className="h-4 w-4" /> Neighborhood Privacy
           </button>
           <button className="w-full text-left p-3 rounded-2xl bg-cream-100 hover:bg-white text-slate-muted font-medium text-xs flex items-center gap-2 transition-colors">
             <Bell className="h-4 w-4" /> Notifications
@@ -69,8 +70,8 @@ export default function SettingsPage() {
         <div className="md:col-span-2 space-y-6">
           <Card className="p-6">
             <CardHeader className="p-0 pb-4">
-              <CardTitle className="text-base">Student Profile Information</CardTitle>
-              <CardDescription>Update your campus representation</CardDescription>
+              <CardTitle className="text-base">Community Member Profile</CardTitle>
+              <CardDescription>Update your neighborhood presence</CardDescription>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
               <form onSubmit={handleSave} className="space-y-4">
@@ -79,15 +80,20 @@ export default function SettingsPage() {
                   <Input value={name} onChange={(e) => setName(e.target.value)} className="text-xs" />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-heading mb-1">Campus City</label>
-                  <Input value={city} onChange={(e) => setCity(e.target.value)} className="text-xs" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-heading mb-1">Neighborhood / Locality</label>
+                    <Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} className="text-xs" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-heading mb-1">City</label>
+                    <Input value={city} onChange={(e) => setCity(e.target.value)} className="text-xs" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-heading mb-1">College Email</label>
-                  <Input disabled value={currentUser?.email || "aarav.sharma@cse.iitb.ac.in"} className="text-xs bg-cream-100 cursor-not-allowed" />
-                  <p className="text-[10px] text-slate-muted mt-1">Collegiate email cannot be changed once verified.</p>
+                  <label className="block text-xs font-semibold text-slate-heading mb-1">Email Address</label>
+                  <Input disabled value={currentUser?.email || "ramesh.kulkarni@gmail.com"} className="text-xs bg-cream-100 cursor-not-allowed" />
                 </div>
 
                 {/* Privacy Toggles */}
@@ -100,7 +106,7 @@ export default function SettingsPage() {
                       onChange={(e) => setAllowPublicSearch(e.target.checked)}
                       className="rounded text-burgundy-600"
                     />
-                    <span>Show my profile in the Explore Mentors directory</span>
+                    <span>Show my profile in the Explore Directory for nearby neighbors</span>
                   </label>
 
                   <label className="flex items-center gap-2 text-xs text-slate-heading cursor-pointer">
@@ -110,7 +116,7 @@ export default function SettingsPage() {
                       onChange={(e) => setEmailAlerts(e.target.checked)}
                       className="rounded text-burgundy-600"
                     />
-                    <span>Email me when a peer proposes a skill swap</span>
+                    <span>Send email notifications when a neighbor proposes a skill swap</span>
                   </label>
                 </div>
 

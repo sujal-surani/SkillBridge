@@ -10,7 +10,6 @@ import {
   Compass, 
   Menu, 
   X,
-  HeartHandshake,
   LayoutDashboard,
   Coins,
   Shield,
@@ -22,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/context/AuthContext";
 import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
+import { BrandLogo } from "@/components/layout/BrandLogo";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -47,9 +47,7 @@ export function Navbar() {
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-burgundy-600 text-white shadow-md shadow-burgundy-600/20 group-hover:scale-105 transition-transform">
-            <HeartHandshake className="h-5 w-5 text-peach-200" />
-          </div>
+          <BrandLogo />
           <div className="flex flex-col">
             <span className="font-heading text-xl font-bold tracking-tight text-slate-heading">
               Skill<span className="text-burgundy-600">Bridge</span>

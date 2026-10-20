@@ -9,7 +9,7 @@ export function Footer() {
           {/* Brand Info */}
           <div className="space-y-4 md:col-span-1">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-burgundy-600 text-white shadow-sm">
+              <div suppressHydrationWarning className="flex h-9 w-9 items-center justify-center rounded-xl bg-burgundy-600 text-white shadow-sm">
                 <HeartHandshake className="h-5 w-5 text-peach-200" />
               </div>
               <span className="font-heading text-lg font-bold text-slate-heading">

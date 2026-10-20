@@ -27,7 +27,12 @@ export function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const { currentUser, loginAsMember, logout } = useAuth();
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navLinks = [
     { label: "Community Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -79,7 +84,9 @@ export function Navbar() {
 
         {/* Right Section: User Status or Auth CTA */}
         <div className="hidden md:flex items-center gap-3">
-          {currentUser ? (
+          {!mounted ? (
+            <div className="h-9 w-32 rounded-2xl bg-cream-200/50 animate-pulse" />
+          ) : currentUser ? (
             <div className="flex items-center gap-3">
               {/* Skill Points Pill */}
               <Link href="/dashboard" className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-peach-100 border border-peach-200 text-burgundy-800 text-xs font-bold hover:bg-peach-200 transition-colors">
@@ -235,7 +242,9 @@ export function Navbar() {
             </Link>
           </div>
           <div className="pt-3 border-t border-cream-200 flex flex-col gap-2">
-            {currentUser ? (
+            {!mounted ? (
+              <div className="h-12 w-full rounded-xl bg-cream-200/50 animate-pulse" />
+            ) : currentUser ? (
               <div className="flex items-center justify-between p-2 rounded-xl bg-cream-100">
                 <div className="flex items-center gap-2">
                   <img

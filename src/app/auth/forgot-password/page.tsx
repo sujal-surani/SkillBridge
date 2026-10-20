@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { GraduationCap, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
+import { HeartHandshake, ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2 mb-2">
             <div className="h-10 w-10 rounded-xl bg-burgundy-600 flex items-center justify-center text-white shadow-md">
-              <GraduationCap className="h-5 w-5 text-peach-200" />
+              <HeartHandshake className="h-5 w-5 text-peach-200" />
             </div>
           </Link>
           <h1 className="text-2xl font-bold text-slate-heading">Reset Your Password</h1>

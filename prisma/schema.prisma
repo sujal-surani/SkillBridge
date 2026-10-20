@@ -1,0 +1,141 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                   String           @id @default(cuid())
+  fullName             String
+  email                String           @unique
+  passwordHash         String
+  collegeName          String
+  major                String
+  graduationYear       Int
+  bio                  String
+  avatarUrl            String
+  city                 String
+  modePreference       String           @default("ONLINE") // ONLINE, OFFLINE, HYBRID
+  languages            String           // Stored as JSON/comma-separated: "English,Hindi"
+  skillPointsBalance   Int              @default(50)
+  averageRating        Float            @default(5.0)
+  totalSessions        Int              @default(0)
+  role                 String           @default("STUDENT") // STUDENT, ADMIN
+  createdAt            DateTime         @default(now())
+
+  skills               UserSkill[]
+  sentRequests         ExchangeRequest[] @relation("SentRequests")
+  receivedRequests     ExchangeRequest[] @relation("ReceivedRequests")
+  reviewsGiven         Review[]          @relation("ReviewsGiven")
+  reviewsReceived      Review[]          @relation("ReviewsReceived")
+  doubts               Doubt[]
+  doubtReplies         DoubtReply[]
+  pointTransactions    PointTransaction[]
+}
+
+model Skill {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  category    String      // Web Dev, AI/ML, Design, Core Engineering, Languages
+  iconName    String      @default("Code")
+  isApproved  Boolean     @default(true)
+
+  userSkills  UserSkill[]
+}
+
+model UserSkill {
+  id               String   @id @default(cuid())
+  userId           String
+  skillId          String
+  type             String   // TEACHING, LEARNING
+  proficiency      String   // BEGINNER, INTERMEDIATE, ADVANCED
+  yearsExperience  Int      @default(1)
+  portfolioLink    String?
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill            Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+}
+
+model ExchangeRequest {
+  id               String   @id @default(cuid())
+  senderId         String
+  receiverId       String
+  offeredSkill     String
+  requestedSkill   String
+  status           String   @default("PENDING") // PENDING, ACCEPTED, DECLINED, COMPLETED
+  proposedTime     DateTime
+  message          String
+  createdAt        DateTime @default(now())
+
+  sender           User     @relation("SentRequests", fields: [senderId], references: [id])
+  receiver         User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
+  session          Session?
+}
+
+model Session {
+  id                String          @id @default(cuid())
+  exchangeRequestId String          @unique
+  meetingRoomId     String          @unique
+  startTime         DateTime
+  durationMinutes   Int             @default(60)
+  status            String          @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED
+  notesMarkdown     String?
+
+  exchangeRequest   ExchangeRequest @relation(fields: [exchangeRequestId], references: [id], onDelete: Cascade)
+  reviews           Review[]
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  sessionId   String
+  reviewerId  String
+  revieweeId  String
+  ratingStars Int      // 1-5
+  feedback    String
+  tags        String   // Comma-separated: "Patient,Clear Explanations"
+  createdAt   DateTime @default(now())
+
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+}
+
+model Doubt {
+  id          String       @id @default(cuid())
+  authorId    String
+  title       String
+  content     String
+  tags        String       // "Recursion,C++,DSA"
+  isSolved    Boolean      @default(false)
+  upvotes     Int          @default(0)
+  createdAt   DateTime     @default(now())
+
+  author      User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies     DoubtReply[]
+}
+
+model DoubtReply {
+  id               String   @id @default(cuid())
+  doubtId          String
+  authorId         String
+  content          String
+  isMarkedSolution Boolean  @default(false)
+  upvotes          Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  doubt            Doubt    @relation(fields: [doubtId], references: [id], onDelete: Cascade)
+  author           User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model PointTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

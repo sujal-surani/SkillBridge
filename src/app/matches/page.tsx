@@ -11,20 +11,25 @@ import {
   HeartHandshake, 
   ArrowRight,
   Check,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useAuth } from "@/lib/context/AuthContext";
+import { useSwap } from "@/lib/context/SwapContext";
 import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
 import { calculateMatchScore } from "@/lib/matching";
 
 export default function MyMatchesPage() {
   const { currentUser } = useAuth();
+  const { createProposal } = useSwap();
   const [minMatchScore, setMinMatchScore] = useState<number>(60);
   const [proposalMember, setProposalMember] = useState<CommunityMember | null>(null);
+  const [proposedTime, setProposedTime] = useState("Saturday at 10:00 AM IST");
   const [proposalSent, setProposalSent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [note, setNote] = useState("");
 
   if (!currentUser) {
@@ -49,14 +54,32 @@ export default function MyMatchesPage() {
     .filter((item) => item.match.totalScore >= minMatchScore)
     .sort((a, b) => b.match.totalScore - a.match.totalScore);
 
-  const handleSendProposal = (e: React.FormEvent) => {
+  const handleSendProposal = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProposalSent(true);
-    setTimeout(() => {
-      setProposalMember(null);
-      setProposalSent(false);
-      setNote("");
-    }, 1200);
+    if (!proposalMember || !currentUser) return;
+    setIsSubmitting(true);
+
+    try {
+      const matchData = calculateMatchScore(currentUser, proposalMember);
+      await createProposal({
+        receiver: proposalMember,
+        offeredSkill: matchData.mutualTeachSkill || currentUser.teachingSkills[0]?.name || "Creative Guidance",
+        requestedSkill: matchData.mutualLearnSkill || proposalMember.teachingSkills[0]?.name || "Wellness Practice",
+        proposedTime,
+        message: note.trim() || `Hello ${proposalMember.fullName.split(" ")[0]}! I saw our ${matchData.totalScore}% compatibility score and would love to exchange skills with you!`,
+        currentUser,
+      });
+
+      setProposalSent(true);
+      setTimeout(() => {
+        setProposalMember(null);
+        setProposalSent(false);
+        setNote("");
+        setIsSubmitting(false);
+      }, 1000);
+    } catch (err) {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -106,15 +129,19 @@ export default function MyMatchesPage() {
             <div className="p-6 pb-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3.5">
-                  <img
-                    src={candidate.avatarUrl}
-                    alt={candidate.fullName}
-                    className="h-14 w-14 rounded-2xl object-cover border-2 border-peach-300 shadow-sm"
-                  />
+                  <Link href={`/members/${candidate.id}`}>
+                    <img
+                      src={candidate.avatarUrl}
+                      alt={candidate.fullName}
+                      className="h-14 w-14 rounded-2xl object-cover border-2 border-peach-300 shadow-sm hover:scale-105 transition-transform cursor-pointer"
+                    />
+                  </Link>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-heading">
-                      {candidate.fullName} ({candidate.age})
-                    </h3>
+                    <Link href={`/members/${candidate.id}`}>
+                      <h3 className="text-lg font-bold text-slate-heading hover:text-burgundy-700 transition-colors">
+                        {candidate.fullName} ({candidate.age})
+                      </h3>
+                    </Link>
                     <p className="text-xs text-slate-muted flex items-center gap-1">
                       <MapPin className="h-3.5 w-3.5 text-burgundy-600" />
                       {candidate.neighborhood}, {candidate.city}
@@ -158,75 +185,77 @@ export default function MyMatchesPage() {
               {/* 6-Factor Algorithmic Score Breakdown Progress */}
               <div className="mt-4 pt-4 border-t border-cream-200 space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-muted block">
-                  Weighted Factor Breakdown
+                  Match Breakdown
                 </span>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center text-[10px]">
-                  <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.skillScore}/50</div>
-                    <div className="text-slate-muted">Skills</div>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.availabilityScore}/15</div>
-                    <div className="text-slate-muted">Availability</div>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.languageScore}/10</div>
-                    <div className="text-slate-muted">Language</div>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.levelScore}/10</div>
-                    <div className="text-slate-muted">Level</div>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.modeGeoScore}/10</div>
-                    <div className="text-slate-muted">Loc/Mode</div>
-                  </div>
-                  <div className="p-2 rounded-xl bg-white border border-[#EDE7DE]">
-                    <div className="font-bold text-slate-heading">{match.reputationScore}/5</div>
-                    <div className="text-slate-muted">Karma</div>
-                  </div>
+                <div className="space-y-1.5 text-[11px]">
+                  {match.breakdown.map((item, idx) => (
+                    <div key={idx} className="space-y-0.5">
+                      <div className="flex justify-between text-slate-heading">
+                        <span>{item.dimension}</span>
+                        <span className="font-bold">{item.points} / {item.max} pts</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-cream-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-burgundy-600 rounded-full transition-all"
+                          style={{ width: `${(item.points / item.max) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Footer with action */}
-            <CardFooter className="p-6 pt-3 border-t border-cream-200 flex items-center justify-between bg-cream-50/50">
-              <span className="text-xs text-slate-muted">
-                Free on: {candidate.availability.map((a) => a.day).join(", ")}
-              </span>
-              <Button
-                size="sm"
-                variant="primary"
-                onClick={() => setProposalMember(candidate)}
-                className="gap-1.5 text-xs"
-              >
-                <Sparkles className="h-3.5 w-3.5 text-peach-200" />
-                Request Exchange
-              </Button>
-            </CardFooter>
+            {/* Bottom Actions */}
+            <div className="p-6 pt-0 mt-2 flex items-center justify-between gap-3 border-t border-cream-200/80">
+              <div className="flex items-center gap-1.5 text-xs text-slate-muted">
+                <Clock className="h-3.5 w-3.5 text-burgundy-600" />
+                <span>Next slot: {candidate.availability[0]?.day || "Flexible"}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link href={`/members/${candidate.id}`}>
+                  <Button variant="secondary" size="sm" className="text-xs">
+                    View Profile
+                  </Button>
+                </Link>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setProposalMember(candidate)}
+                  className="gap-1.5 text-xs"
+                >
+                  <HeartHandshake className="h-3.5 w-3.5 text-peach-200" />
+                  Propose Swap
+                </Button>
+              </div>
+            </div>
           </Card>
         ))}
       </div>
 
-      {/* Request Exchange Modal */}
+      {/* Proposal Modal */}
       {proposalMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-[#EDE7DE] space-y-4">
-            <div className="flex items-start justify-between pb-3 border-b border-cream-200">
-              <div className="flex items-center gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-[#EDE7DE] space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-cream-200 pb-3">
+              <div className="flex items-center gap-2.5">
                 <img
                   src={proposalMember.avatarUrl}
                   alt=""
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-9 w-9 rounded-xl object-cover"
                 />
                 <div>
                   <h3 className="text-sm font-bold text-slate-heading">
-                    Request Swap with {proposalMember.fullName} ({proposalMember.age})
+                    Propose Swap to {proposalMember.fullName}
                   </h3>
-                  <p className="text-xs text-slate-muted">{proposalMember.neighborhood}, {proposalMember.city}</p>
+                  <p className="text-[11px] text-slate-muted">
+                    {proposalMember.neighborhood}, {proposalMember.city}
+                  </p>
                 </div>
               </div>
               <button
+                disabled={isSubmitting}
                 onClick={() => setProposalMember(null)}
                 className="text-slate-muted hover:text-slate-heading"
               >
@@ -250,10 +279,14 @@ export default function MyMatchesPage() {
                   <label className="block text-xs font-semibold text-slate-heading mb-1">
                     Proposed Meeting Window:
                   </label>
-                  <select className="w-full h-10 rounded-xl border border-[#EDE7DE] text-xs px-3 bg-cream-50">
-                    <option>Saturday at 10:00 AM IST</option>
-                    <option>Sunday at 4:00 PM IST</option>
-                    <option>Wednesday at 6:30 PM IST</option>
+                  <select
+                    value={proposedTime}
+                    onChange={(e) => setProposedTime(e.target.value)}
+                    className="w-full h-10 rounded-xl border border-[#EDE7DE] text-xs px-3 bg-cream-50"
+                  >
+                    <option value="Saturday at 10:00 AM IST">Saturday at 10:00 AM IST</option>
+                    <option value="Sunday at 4:00 PM IST">Sunday at 4:00 PM IST</option>
+                    <option value="Wednesday at 6:30 PM IST">Wednesday at 6:30 PM IST</option>
                   </select>
                 </div>
 
@@ -264,7 +297,7 @@ export default function MyMatchesPage() {
                   <textarea
                     rows={3}
                     required
-                    placeholder="Hello! I saw our 94% match score and would love to swap..."
+                    placeholder="Hello! I would love to exchange our skills this weekend..."
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     className="w-full rounded-xl border border-[#EDE7DE] p-2.5 text-xs text-slate-heading focus:border-burgundy-600 focus:outline-none"
@@ -276,13 +309,23 @@ export default function MyMatchesPage() {
                     type="button"
                     variant="ghost"
                     size="sm"
+                    disabled={isSubmitting}
                     onClick={() => setProposalMember(null)}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" variant="primary" size="sm" className="gap-1.5">
-                    <Sparkles className="h-4 w-4 text-peach-200" />
-                    Dispatch Request
+                  <Button type="submit" variant="primary" size="sm" disabled={isSubmitting} className="gap-1.5">
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-peach-200" />
+                        Dispatching...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 text-peach-200" />
+                        Dispatch Request
+                      </>
+                    )}
                   </Button>
                 </div>
               </form>

@@ -10,6 +10,7 @@ export interface MatchScoreBreakdown {
   reputationScore: number; // max 5
   mutualTeachSkill?: string;
   mutualLearnSkill?: string;
+  breakdown: { dimension: string; points: number; max: number }[];
 }
 
 export function calculateMatchScore(
@@ -137,5 +138,13 @@ export function calculateMatchScore(
     reputationScore,
     mutualTeachSkill: mutualTeachSkill || currentUser.teachingSkills[0]?.name,
     mutualLearnSkill: mutualLearnSkill || candidate.teachingSkills[0]?.name,
+    breakdown: [
+      { dimension: "Mutual Skill Complementarity", points: skillScore, max: 50 },
+      { dimension: "Schedule Overlap", points: availabilityScore, max: 15 },
+      { dimension: "Language Alignment", points: languageScore, max: 10 },
+      { dimension: "Proficiency Pairing", points: levelScore, max: 10 },
+      { dimension: "Proximity & Mode", points: modeGeoScore, max: 10 },
+      { dimension: "Community Reputation", points: reputationScore, max: 5 },
+    ],
   };
 }

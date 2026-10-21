@@ -3,6 +3,8 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/context/AuthContext";
+import { SwapProvider } from "@/lib/context/SwapContext";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "SkillBridge — Share. Learn. Repeat.",
@@ -19,9 +21,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-cream-100 text-slate-body antialiased" suppressHydrationWarning>
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <SwapProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <Toaster />
+          </SwapProvider>
         </AuthProvider>
       </body>
     </html>

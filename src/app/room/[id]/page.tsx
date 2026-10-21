@@ -20,18 +20,24 @@ import {
   Coins, 
   MapPin, 
   Palette, 
-  HeartPulse 
+  HeartPulse,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/context/AuthContext";
+import { useSwap } from "@/lib/context/SwapContext";
 
 export default function LearningRoomPage() {
   const params = useParams();
   const router = useRouter();
   const { currentUser, addSkillPoints } = useAuth();
-  const roomId = params?.id || "SB-482";
+  const { completeSession, getSessionByRoomId } = useSwap();
+  const roomId = (params?.id as string) || "SB-482";
+
+  // Check if session exists in SwapContext
+  const activeSession = getSessionByRoomId(roomId);
 
   // Media Controls State
   const [micOn, setMicOn] = useState(true);
@@ -66,6 +72,7 @@ export default function LearningRoomPage() {
     "Kavita's spine stretches completely relieved the stiffness in my neck! A truly enriching and restorative community exchange."
   );
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
     let interval: any = null;
@@ -110,13 +117,28 @@ export default function LearningRoomPage() {
     setFeedbackModalOpen(true);
   };
 
-  const handleCompleteReview = (e: React.FormEvent) => {
+  const handleCompleteReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFeedbackSubmitted(true);
-    addSkillPoints(25); // Award +25 points
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1500);
+    if (!currentUser) return;
+    setIsSubmittingReview(true);
+
+    try {
+      await completeSession(roomId, {
+        rating,
+        comment: reviewText,
+        badges: selectedTags,
+        reviewer: currentUser,
+        pointsToAward: 25,
+      });
+
+      addSkillPoints(25); // Award +25 points
+      setFeedbackSubmitted(true);
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1200);
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   return (
@@ -127,10 +149,12 @@ export default function LearningRoomPage() {
           <Badge variant="match">Community Room #{roomId}</Badge>
           <div>
             <h1 className="text-sm font-bold text-slate-heading">
-              1-on-1 Community Exchange: Watercolor Landscape Painting ⇄ Hatha Yoga
+              {activeSession ? activeSession.topic : "1-on-1 Community Exchange: Watercolor Painting ⇄ Hatha Yoga"}
             </h1>
             <p className="text-xs text-slate-muted">
-              Pooja Sharma (34, Jaipur) & Kavita Nair (39, Kochi)
+              {activeSession
+                ? activeSession.participants.map(p => p.name).join(" & ")
+                : "Pooja Sharma (34, Jaipur) & Kavita Nair (39, Kochi)"}
             </p>
           </div>
         </div>
@@ -138,150 +162,171 @@ export default function LearningRoomPage() {
         {/* Live Timer Pill & End Session */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cream-100 border border-cream-200 text-xs font-mono font-bold text-burgundy-700">
-            <Clock className="h-4 w-4 text-burgundy-600 animate-pulse" />
+            <Clock className="h-4 w-4 text-burgundy-600 animate-spin-slow" />
             <span>{formatTimer(secondsLeft)}</span>
           </div>
 
           <Button
-            variant="primary"
+            variant="ghost"
             size="sm"
             onClick={handleEndSession}
-            className="bg-red-600 hover:bg-red-700 text-white text-xs h-9 gap-1.5"
+            className="text-xs text-red-600 hover:bg-red-50 hover:text-red-700 font-bold border border-red-200"
           >
-            <PhoneOff className="h-3.5 w-3.5" />
-            End & Review Exchange
+            <PhoneOff className="h-3.5 w-3.5 mr-1.5" />
+            End Session & Review
           </Button>
         </div>
       </div>
 
-      {/* Main Grid: Video Feeds & Collaborative Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left 2 Columns: Video Feeds & Media Bar */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Main Learning Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-190px)] min-h-[580px]">
+        {/* Left 2 Cols: Collaborative Stage & Notes */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
           
-          {/* Simulated Video Feeds */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Peer Video Card (Kavita) */}
-            <div className="relative aspect-video rounded-3xl bg-slate-900 overflow-hidden shadow-card border border-slate-800 flex items-center justify-center">
-              <img
-                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=800"
-                alt="Kavita Nair"
-                className="w-full h-full object-cover opacity-90"
-              />
-              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Kavita Nair (Yoga Coach, Kochi)
-              </div>
-              <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px]">
-                Posture Mat Active
+          {/* Top Video Stage */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-3/5">
+            {/* Peer Feed 1 (Mentor / Local) */}
+            <div className="relative rounded-3xl bg-slate-900 overflow-hidden shadow-inner flex items-center justify-center border border-slate-800">
+              {camOn ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600"
+                    alt="Pooja Sharma"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                </div>
+              ) : (
+                <div className="text-center text-slate-400 space-y-2">
+                  <div className="h-16 w-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-xl font-bold text-white">
+                    PS
+                  </div>
+                  <p className="text-xs">Camera paused</p>
+                </div>
+              )}
+
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-xs text-[11px] font-semibold text-white flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  Pooja Sharma (You)
+                </span>
+                {!micOn && (
+                  <span className="p-1 rounded-md bg-red-500/80 text-white">
+                    <MicOff className="h-3 w-3" />
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* Self Video Card (Pooja) */}
-            <div className="relative aspect-video rounded-3xl bg-slate-900 overflow-hidden shadow-card border border-slate-800 flex items-center justify-center">
-              {camOn ? (
+            {/* Peer Feed 2 (Partner) */}
+            <div className="relative rounded-3xl bg-slate-900 overflow-hidden shadow-inner flex items-center justify-center border border-slate-800">
+              <div className="relative w-full h-full">
                 <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800"
-                  alt="Pooja Sharma"
+                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600"
+                  alt="Kavita Nair"
                   className="w-full h-full object-cover"
                 />
-              ) : (
-                <div className="text-center text-slate-400">
-                  <VideoOff className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs">Camera is turned off</p>
-                </div>
-              )}
-              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5">
-                <span className={`h-2 w-2 rounded-full ${micOn ? "bg-emerald-400" : "bg-red-500"}`} />
-                You ({currentUser?.fullName.split(" ")[0]})
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              </div>
+
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-xs text-[11px] font-semibold text-white flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  Kavita Nair (Yoga Coach)
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Media Control Bar */}
-          <div className="p-3 rounded-2xl bg-white border border-[#EDE7DE] shadow-subtle flex items-center justify-center gap-3">
+          {/* Media Floating Controls Bar */}
+          <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-2xl bg-white border border-[#EDE7DE] shadow-subtle mx-auto w-fit">
             <button
               onClick={() => setMicOn(!micOn)}
               className={`p-3 rounded-xl transition-all ${
-                micOn ? "bg-cream-200 text-slate-heading hover:bg-cream-300" : "bg-red-100 text-red-600"
+                micOn ? "bg-cream-100 text-slate-heading hover:bg-cream-200" : "bg-red-500 text-white"
               }`}
               title={micOn ? "Mute Microphone" : "Unmute Microphone"}
             >
-              {micOn ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+              {micOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
             </button>
 
             <button
               onClick={() => setCamOn(!camOn)}
               className={`p-3 rounded-xl transition-all ${
-                camOn ? "bg-cream-200 text-slate-heading hover:bg-cream-300" : "bg-red-100 text-red-600"
+                camOn ? "bg-cream-100 text-slate-heading hover:bg-cream-200" : "bg-red-500 text-white"
               }`}
               title={camOn ? "Stop Camera" : "Start Camera"}
             >
-              {camOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+              {camOn ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
             </button>
 
             <button
               onClick={() => setScreenSharing(!screenSharing)}
               className={`p-3 rounded-xl transition-all ${
-                screenSharing ? "bg-burgundy-600 text-white" : "bg-cream-200 text-slate-heading hover:bg-cream-300"
+                screenSharing ? "bg-emerald-600 text-white" : "bg-cream-100 text-slate-heading hover:bg-cream-200"
               }`}
-              title="Share Easel / Screen"
+              title="Share Screen"
             >
-              <Share2 className="h-5 w-5" />
+              <Share2 className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Collaborative Notes Area */}
-          <div className="p-5 rounded-3xl bg-white border border-[#EDE7DE] shadow-card space-y-3">
+          {/* Shared Real-Time Session Notes */}
+          <div className="flex-1 rounded-3xl bg-white border border-[#EDE7DE] shadow-card p-4 flex flex-col min-h-[160px]">
             <div className="flex items-center justify-between pb-2 border-b border-cream-200">
               <div className="flex items-center gap-2">
                 <Edit3 className="h-4 w-4 text-burgundy-600" />
-                <h3 className="text-xs font-bold text-slate-heading uppercase tracking-wider">
-                  Shared Session Notes (Watercolor Techniques & Yoga Postures)
-                </h3>
+                <span className="text-xs font-bold text-slate-heading">
+                  Shared Live Workspace Notes
+                </span>
+                <Badge variant="peach" className="text-[10px] py-0">Auto-saved</Badge>
               </div>
-              <Badge variant="success">Auto-Saving</Badge>
             </div>
+
             <textarea
-              rows={8}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full font-mono text-xs text-slate-heading p-3 rounded-xl bg-cream-50 border border-cream-200 focus:outline-none focus:border-burgundy-600 leading-relaxed"
+              className="flex-1 w-full mt-2 resize-none border-none p-2 text-xs font-mono text-slate-body focus:outline-none bg-cream-50/50 rounded-xl leading-relaxed"
+              placeholder="Jot down notes, recipe measurements, chord charts, or yoga posture instructions together..."
             />
           </div>
         </div>
 
-        {/* Right 1 Column: In-Room Live Chat */}
-        <div className="flex flex-col h-[700px] rounded-3xl bg-white border border-[#EDE7DE] shadow-card overflow-hidden">
-          <div className="p-4 border-b border-cream-200 flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-burgundy-600" />
-            <h3 className="text-xs font-bold text-slate-heading uppercase tracking-wider">
-              In-Room Live Chat
-            </h3>
+        {/* Right 1 Col: In-Session Chat & Quick Resources */}
+        <div className="rounded-3xl bg-white border border-[#EDE7DE] shadow-card flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-cream-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-burgundy-600" />
+              <span className="text-xs font-bold text-slate-heading">In-Room Chat</span>
+            </div>
+            <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              Encrypted P2P
+            </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {roomChat.map((msg, i) => (
-              <div key={i} className="text-xs space-y-0.5">
-                <div className="flex items-center justify-between">
+          {/* Chat Messages */}
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+            {roomChat.map((msg, idx) => (
+              <div key={idx} className="space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-slate-muted">
                   <span className="font-bold text-slate-heading">{msg.sender}</span>
-                  <span className="text-[10px] text-slate-muted">{msg.time}</span>
+                  <span>{msg.time}</span>
                 </div>
-                <p className="p-2.5 rounded-xl bg-cream-100 border border-cream-200 text-slate-body">
+                <div className="p-2.5 rounded-xl bg-cream-100 text-slate-body leading-relaxed">
                   {msg.text}
-                </p>
+                </div>
               </div>
             ))}
           </div>
 
-          <form onSubmit={handleSendRoomChat} className="p-3 border-t border-cream-200 flex gap-2">
+          {/* Send Input */}
+          <form onSubmit={handleSendRoomChat} className="p-3 border-t border-cream-200 flex items-center gap-2">
             <Input
               type="text"
-              placeholder="Ask a question or share a tip..."
+              placeholder="Send message to room..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              className="h-9 text-xs"
+              className="text-xs h-9 rounded-xl"
             />
             <Button type="submit" size="sm" variant="primary" className="h-9 px-3">
               <Send className="h-3.5 w-3.5" />
@@ -290,38 +335,36 @@ export default function LearningRoomPage() {
         </div>
       </div>
 
-      {/* Post-Session Feedback & Points Modal */}
+      {/* Post-Session Feedback & Skill Points Modal */}
       {feedbackModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-[#EDE7DE] space-y-5 animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl border border-[#EDE7DE] space-y-4">
             <div className="text-center space-y-1">
-              <Badge variant="peach" className="mb-1">Exchange Completed</Badge>
-              <h2 className="text-xl font-bold text-slate-heading">
-                Rate & Review Your Exchange with Kavita
-              </h2>
+              <div className="h-12 w-12 rounded-2xl bg-peach-100 text-burgundy-700 flex items-center justify-center mx-auto mb-2 shadow-xs">
+                <Sparkles className="h-6 w-6 text-burgundy-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-heading">Complete Exchange & Leave Review</h3>
               <p className="text-xs text-slate-muted">
-                Your feedback strengthens our community karma and neighbor trust.
+                How was your session with Kavita Nair? Reviews build neighborhood trust.
               </p>
             </div>
 
             {feedbackSubmitted ? (
-              <div className="text-center py-8 space-y-3">
-                <div className="h-14 w-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="h-8 w-8" />
+              <div className="text-center py-6 space-y-3">
+                <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="h-6 w-6" />
                 </div>
-                <h3 className="text-base font-bold text-slate-heading">Review Submitted!</h3>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-peach-100 text-burgundy-800 text-xs font-bold border border-peach-200">
-                  <Coins className="h-4 w-4 text-burgundy-600" />
-                  +25 Community Skill Points Awarded
-                </div>
-                <p className="text-xs text-slate-muted">Returning to community dashboard...</p>
+                <h4 className="text-sm font-bold text-slate-heading">Review Submitted & Points Credited!</h4>
+                <p className="text-xs text-slate-muted">
+                  Redirecting to your updated community profile...
+                </p>
               </div>
             ) : (
-              <form onSubmit={handleCompleteReview} className="space-y-4">
+              <form onSubmit={handleCompleteReview} className="space-y-4 pt-2">
                 {/* 5-Star Rating */}
-                <div className="text-center">
-                  <label className="text-xs font-semibold text-slate-heading block mb-2">
-                    How was the clarity and learning experience?
+                <div>
+                  <label className="text-xs font-semibold text-slate-heading block mb-1.5 text-center">
+                    Overall Experience Rating:
                   </label>
                   <div className="flex items-center justify-center gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -329,13 +372,13 @@ export default function LearningRoomPage() {
                         key={star}
                         type="button"
                         onClick={() => setRating(star)}
-                        className="p-1 hover:scale-110 transition-transform"
+                        className="p-1 transition-transform hover:scale-110"
                       >
                         <Star
                           className={`h-7 w-7 ${
                             star <= rating
-                              ? "fill-amber-400 text-amber-400"
-                              : "text-slate-200"
+                              ? "fill-amber-400 text-amber-500"
+                              : "text-slate-300"
                           }`}
                         />
                       </button>
@@ -343,10 +386,10 @@ export default function LearningRoomPage() {
                   </div>
                 </div>
 
-                {/* Peer Compliment Tags */}
+                {/* Badge tags */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-heading block mb-2">
-                    Award Community Accolades:
+                  <label className="text-xs font-semibold text-slate-heading block mb-1.5">
+                    Recognize their strengths with Community Badges:
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {[
@@ -378,7 +421,7 @@ export default function LearningRoomPage() {
                 {/* Written Review */}
                 <div>
                   <label className="text-xs font-semibold text-slate-heading block mb-1">
-                    Written Feedback (Visible on Kavita&apos;s Profile):
+                    Written Feedback (Visible on Neighbor&apos;s Profile):
                   </label>
                   <textarea
                     rows={3}
@@ -398,8 +441,23 @@ export default function LearningRoomPage() {
                   <Badge variant="peach">+25 Skill Points</Badge>
                 </div>
 
-                <Button type="submit" variant="primary" className="w-full justify-center gap-2">
-                  Submit Review & Claim Points
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isSubmittingReview}
+                  className="w-full justify-center gap-2"
+                >
+                  {isSubmittingReview ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-peach-200" />
+                      Finalizing Session...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 text-peach-200" />
+                      Submit Review & Claim Points
+                    </>
+                  )}
                 </Button>
               </form>
             )}

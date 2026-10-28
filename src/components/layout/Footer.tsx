@@ -1,7 +1,18 @@
+"use client";
+
 import Link from "next/link";
-import { HeartHandshake, Heart, ShieldCheck, Sparkles } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { HeartHandshake, Heart, ShieldCheck } from "lucide-react";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide the global marketing footer on live video sessions (/room/...) and dedicated chat (/chat)
+  // to prevent overlapping notes workspace, video feeds, and message bars.
+  if (pathname?.startsWith("/room") || pathname?.startsWith("/chat")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-[#EDE7DE] bg-white text-slate-body">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

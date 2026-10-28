@@ -303,7 +303,7 @@ export default function LearningRoomPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-4">
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 space-y-3 pb-6">
       {/* Room Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-[#EDE7DE] shadow-subtle">
         <div className="flex items-center gap-3">
@@ -340,7 +340,7 @@ export default function LearningRoomPage() {
       </div>
 
       {/* Main Learning Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-190px)] min-h-[580px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-160px)] min-h-[580px]">
         {/* Left 2 Cols: Collaborative Stage & Notes */}
         <div className="lg:col-span-2 flex flex-col gap-4">
           

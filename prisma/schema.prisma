@@ -1,143 +1,266 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// SkillBridge — Prisma Schema
+// Phase 2: PostgreSQL (Supabase) Production Schema
+// Mirrors SwapContext.tsx interfaces exactly for zero-UI-breakage migration
+// ─────────────────────────────────────────────────────────────────────────────
+
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-model CommunityMember {
-  id                   String           @id @default(cuid())
-  fullName             String
-  age                  Int              @default(30)
-  email                String           @unique
-  passwordHash         String
-  occupationOrInterest String
-  neighborhood         String           // e.g. "Koregaon Park", "Indiranagar", "Bandra West"
-  city                 String           // e.g. "Pune, MH", "Bengaluru, KA"
-  modePreference       String           @default("HYBRID") // ONLINE, IN_PERSON, HYBRID
-  spokenLanguages      String           // Comma-separated or JSON
-  bio                  String
-  avatarUrl            String
-  skillPointsBalance   Int              @default(50)
-  averageRating        Float            @default(5.0)
-  totalSessions        Int              @default(0)
-  role                 String           @default("MEMBER") // MEMBER, ADMIN, MODERATOR
-  createdAt            DateTime         @default(now())
+// ─── NextAuth.js v5 Required Models (Step 2 Ready) ───────────────────────────
 
-  skills               MemberSkill[]
-  sentRequests         ExchangeRequest[] @relation("SentRequests")
-  receivedRequests     ExchangeRequest[] @relation("ReceivedRequests")
-  reviewsGiven         Review[]          @relation("ReviewsGiven")
-  reviewsReceived      Review[]          @relation("ReviewsReceived")
-  questions            CommunityQuestion[]
-  replies              QuestionReply[]
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Core Application Models ──────────────────────────────────────────────────
+
+/// The primary user / community member.
+/// Mirrors CommunityMember in mock-data.ts and the reviewer / currentUser
+/// shapes used throughout SwapContext.tsx and AuthContext.tsx.
+model User {
+  id                   String    @id @default(cuid())
+
+  // Auth fields (NextAuth v5 compatible)
+  name                 String?
+  email                String    @unique
+  emailVerified        DateTime?
+  image                String?   // avatarUrl alias — NextAuth uses `image`
+  passwordHash         String?   // null for OAuth-only users
+
+  // Community Profile — mirrors CommunityMember interface
+  fullName             String    @default("")
+  age                  Int       @default(25)
+  avatarUrl            String    @default("") // canonical field for app logic
+  occupationOrInterest String    @default("")
+  neighborhood         String    @default("") // e.g. "Koregaon Park"
+  city                 String    @default("") // e.g. "Pune, MH"
+  bio                  String    @default("")
+
+  // Preferences
+  // String enum: "ONLINE" | "IN_PERSON" | "HYBRID"
+  modePreference       String    @default("HYBRID")
+  // JSON string array: ["English","Hindi","Marathi"]
+  spokenLanguages      String    @default("[]")
+  // JSON string array of { day, timeSlots[] } objects
+  availability         String    @default("[]")
+  // String enum: "MEMBER" | "ADMIN" | "MODERATOR"
+  role                 String    @default("MEMBER")
+
+  // Karma / Gamification — live values (also backed by PointTransaction ledger)
+  skillPointsBalance   Int       @default(50)
+  averageRating        Float     @default(5.0)
+  totalSessions        Int       @default(0)
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // ── Relations ──────────────────────────────────────────────────────────────
+  accounts             Account[]
+  skills               UserSkill[]
+  sentProposals        ExchangeProposal[]  @relation("SentProposals")
+  receivedProposals    ExchangeProposal[]  @relation("ReceivedProposals")
+  reviewsAuthored      Review[]            @relation("ReviewsAuthored")
+  reviewsReceived      Review[]            @relation("ReviewsReceived")
+  sessionParticipants  SessionParticipant[]
+  communityQuestions   CommunityQuestion[]
+  questionReplies      QuestionReply[]
   pointTransactions    PointTransaction[]
 }
 
+/// Skills catalog — the master list of all skills on the platform.
+/// Each Skill is linked to many users as either TEACHING or LEARNING via UserSkill.
 model Skill {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  pillar      String      // TECH_PROFESSIONAL, HEALTH_WELLNESS, CREATIVE_PRACTICAL, ACADEMIC_LANGUAGES
-  category    String      // Gardening, Cooking, Yoga, Excel, Guitar, etc.
-  iconName    String      @default("Sparkles")
-  isApproved  Boolean     @default(true)
+  id         String      @id @default(cuid())
+  name       String      @unique
+  // String enum: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES"
+  pillar     String
+  category   String      // e.g. "Gardening & Sustainability", "Music & Performing Arts"
+  iconName   String      @default("Sparkles")
+  isApproved Boolean     @default(true)
 
-  memberSkills MemberSkill[]
+  userSkills UserSkill[]
 }
 
-model MemberSkill {
-  id               String          @id @default(cuid())
-  memberId         String
-  skillId          String
-  type             String          // TEACHING, LEARNING
-  proficiency      String          // BEGINNER, INTERMEDIATE, EXPERIENCED
-  yearsExperience  Int             @default(1)
-  portfolioNote    String?
+/// Junction table linking Users to Skills.
+/// Mirrors the teachingSkills[] and learningSkills[] arrays in CommunityMember.
+model UserSkill {
+  id              String  @id @default(cuid())
+  userId          String
+  skillId         String
+  // String enum: "TEACHING" | "LEARNING"
+  type            String
+  // String enum: "BEGINNER" | "INTERMEDIATE" | "EXPERIENCED"
+  proficiency     String  @default("BEGINNER")
+  yearsExperience Int     @default(0)
+  portfolioNote   String?
 
-  member           CommunityMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  skill            Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill           Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId, type])
 }
 
-model ExchangeRequest {
-  id               String          @id @default(cuid())
-  senderId         String
-  receiverId       String
-  offeredSkill     String
-  requestedSkill   String
-  status           String          @default("PENDING") // PENDING, ACCEPTED, DECLINED, COMPLETED
-  proposedTime     DateTime
-  message          String
-  createdAt        DateTime        @default(now())
+/// Mirrors SwapProposal interface in SwapContext.tsx exactly.
+/// Denormalized sender/receiver name+avatar fields are stored for
+/// fast reads without requiring joins in the UI hot path.
+model ExchangeProposal {
+  id             String   @id @default(cuid())
+  senderId       String
+  receiverId     String
 
-  sender           CommunityMember @relation("SentRequests", fields: [senderId], references: [id])
-  receiver         CommunityMember @relation("ReceivedRequests", fields: [receiverId], references: [id])
-  session          Session?
+  // Denormalized display fields (mirrors SwapProposal interface)
+  senderName     String
+  senderAvatar   String   @default("")
+  senderLocation String   @default("") // "Neighborhood, City"
+  senderAge      Int?
+  receiverName   String
+  receiverAvatar String   @default("")
+
+  // Skill details
+  offeredSkill   String   // what the sender offers
+  requestedSkill String   // what the sender wants to learn
+  proposedTime   String   // free-text IST string: "Saturday at 10:00 AM IST"
+  message        String   @db.Text
+
+  // String enum: "PENDING" | "ACCEPTED" | "DECLINED"
+  status         String   @default("PENDING")
+  createdAt      DateTime @default(now())
+
+  sender         User         @relation("SentProposals", fields: [senderId], references: [id])
+  receiver       User         @relation("ReceivedProposals", fields: [receiverId], references: [id])
+  session        SwapSession?
 }
 
-model Session {
-  id                String          @id @default(cuid())
-  exchangeRequestId String          @unique
-  meetingRoomId     String          @unique
-  startTime         DateTime
-  durationMinutes   Int             @default(60)
-  status            String          @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED
-  notesMarkdown     String?
+/// Mirrors SwapSession interface in SwapContext.tsx.
+/// Auto-created when an ExchangeProposal is ACCEPTED.
+model SwapSession {
+  id              String    @id @default(cuid())
+  proposalId      String?   @unique
+  roomId          String    @unique // e.g. "SB-482" — used as URL param in /room/[id]
+  topic           String    // e.g. "Watercolor Painting ⇄ Hatha Yoga Posture"
+  offeredSkill    String    // denormalized for fast display
+  requestedSkill  String    // denormalized for fast display
+  scheduledFor    String    // free-text: "Saturday at 10:00 AM IST"
+  durationMinutes Int       @default(60)
+  // String enum: "UPCOMING" | "COMPLETED" | "CANCELLED"
+  status          String    @default("UPCOMING")
+  notesMarkdown   String?   @db.Text // auto-saved collaborative room notes
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime? // null until session ends
 
-  exchangeRequest   ExchangeRequest @relation(fields: [exchangeRequestId], references: [id], onDelete: Cascade)
-  reviews           Review[]
+  proposal        ExchangeProposal?    @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+  participants    SessionParticipant[]
+  reviews         Review[]
 }
 
+/// Join table: SwapSession ↔ User with a role.
+/// Mirrors the Participant interface: { id, name, avatar, location, role }
+model SessionParticipant {
+  id        String @id @default(cuid())
+  sessionId String
+  userId    String
+  // String enum: "mentor" | "learner" | "peer"
+  role      String @default("peer")
+
+  session   SwapSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+}
+
+/// Mirrors SessionReview interface in SwapContext.tsx.
+/// Also the data source for the /profile Karma Ledger review list.
 model Review {
-  id          String          @id @default(cuid())
-  sessionId   String
-  reviewerId  String
-  revieweeId  String
-  ratingStars Int             // 1-5
-  feedback    String
-  tags        String          // "Patient Mentor,Practical Tips"
-  createdAt   DateTime        @default(now())
+  id             String   @id @default(cuid())
+  sessionId      String
+  authorId       String
+  targetMemberId String
+  rating         Int      // 1–5 stars
+  comment        String   @db.Text
+  // JSON string array: ["Patient Mentor","Practical Guidance","Warm & Respectful"]
+  badges         String   @default("[]")
+  createdAt      DateTime @default(now())
 
-  session     Session         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  reviewer    CommunityMember @relation("ReviewsGiven", fields: [reviewerId], references: [id])
-  reviewee    CommunityMember @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  session        SwapSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author         User        @relation("ReviewsAuthored", fields: [authorId], references: [id])
+  target         User        @relation("ReviewsReceived", fields: [targetMemberId], references: [id])
 }
 
-model CommunityQuestion {
-  id          String          @id @default(cuid())
-  authorId    String
-  title       String
-  content     String
-  pillar      String
-  tags        String          // "Gardening,Compost,Organic"
-  isSolved    Boolean         @default(false)
-  upvotes     Int             @default(0)
-  createdAt   DateTime        @default(now())
+/// Mirrors PointsTransaction interface in SwapContext.tsx.
+/// Every karma credit/debit is an immutable append-only row.
+/// The running balance is stored on User.skillPointsBalance for fast reads.
+model PointTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int      // positive = credit, negative = debit
+  // String enum: "EARNED" | "SPENT" | "BONUS"
+  type        String   @default("EARNED")
+  description String   // e.g. "Completed exchange with Kavita Nair"
+  createdAt   DateTime @default(now())
 
-  author      CommunityMember @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  replies     QuestionReply[]
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Community Q&A Board ──────────────────────────────────────────────────────
+
+/// Mirrors CommunityQuestion interface in mock-data.ts.
+model CommunityQuestion {
+  id        String   @id @default(cuid())
+  authorId  String
+  title     String
+  content   String   @db.Text
+  // String enum: "TECH_PROFESSIONAL" | "HEALTH_WELLNESS" | "CREATIVE_PRACTICAL" | "ACADEMIC_LANGUAGES"
+  pillar    String
+  // JSON string array: ["Gardening","Compost","Organic"]
+  tags      String   @default("[]")
+  isSolved  Boolean  @default(false)
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  author    User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies   QuestionReply[]
 }
 
 model QuestionReply {
-  id               String            @id @default(cuid())
-  questionId       String
-  authorId         String
-  content          String
-  isSolution       Boolean           @default(false)
-  upvotes          Int               @default(0)
-  createdAt        DateTime          @default(now())
+  id         String            @id @default(cuid())
+  questionId String
+  authorId   String
+  content    String            @db.Text
+  isSolution Boolean           @default(false)
+  upvotes    Int               @default(0)
+  createdAt  DateTime          @default(now())
 
-  question         CommunityQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  author           CommunityMember   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-}
-
-model PointTransaction {
-  id        String          @id @default(cuid())
-  memberId  String
-  amount    Int
-  reason    String
-  createdAt DateTime        @default(now())
-
-  member    CommunityMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  question   CommunityQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  author     User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }

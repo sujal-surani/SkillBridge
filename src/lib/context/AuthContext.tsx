@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { CommunityMember } from "@/lib/types";
 
@@ -8,7 +8,6 @@ interface AuthContextType {
   currentUser: CommunityMember | null;
   isAdmin: boolean;
   isLoading: boolean;
-  loginAsMember: (memberId: string) => Promise<void>;
   login: (email: string, password?: string) => Promise<boolean>;
   loginAsAdmin: () => void;
   logout: () => Promise<void>;
@@ -17,6 +16,7 @@ interface AuthContextType {
     learning: CommunityMember["learningSkills"]
   ) => void;
   addSkillPoints: (points: number) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,114 +25,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [currentUser, setCurrentUser] = useState<CommunityMember | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const isLoading = status === "loading";
+  const [isProfileLoading, setIsProfileLoading] = useState<boolean>(false);
+  const loadedEmailRef = useRef<string | null>(null);
 
-  // Synchronize NextAuth session with database currentUser
-  useEffect(() => {
-    let isMounted = true;
-
-    async function syncCurrentUser() {
-      if (status === "authenticated" && session?.user) {
-        const email = session.user.email?.toLowerCase();
-        const id = session.user.id;
-
-        try {
-          const res = await fetch("/api/members");
-          if (res.ok) {
-            const dbMembers: CommunityMember[] = await res.json();
-            const found = dbMembers.find(
-              (m) => m.id === id || (email && m.email.toLowerCase() === email)
-            );
-
-            if (found && isMounted) {
-              setCurrentUser(found);
-              setIsAdmin((session.user as any)?.role === "ADMIN");
-              return;
-            }
-          }
-        } catch (err) {
-          console.warn("Failed to fetch member details from database:", err);
-        }
-
-        // Construct standard fallback member from session metadata
-        if (isMounted) {
-          const dynamicUser: CommunityMember = {
-            id: session.user.id || `user-${Date.now()}`,
-            fullName: session.user.name || "Community Member",
-            email: session.user.email || "",
-            age: 28,
-            avatarUrl:
-              session.user.image ||
-              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-            occupationOrInterest: "Neighbor & Lifelong Learner",
-            neighborhood: "Resident",
-            city: "Community Hub",
-            modePreference: "HYBRID",
-            spokenLanguages: ["English", "Hindi"],
-            bio: "Passionate about skill swapping and community learning with neighbors!",
-            skillPointsBalance: 50,
-            averageRating: 5.0,
-            totalSessions: 0,
-            teachingSkills: [
-              {
-                name: "General Skill Sharing",
-                pillar: "TECH_PROFESSIONAL",
-                category: "Everyday Tech",
-                proficiency: "INTERMEDIATE",
-                yearsExperience: 2,
-              },
-            ],
-            learningSkills: [
-              {
-                name: "Practical Crafts",
-                pillar: "CREATIVE_PRACTICAL",
-                category: "General",
-                targetProficiency: "BEGINNER",
-              },
-            ],
-            availability: [
-              { day: "Saturday", timeSlots: ["10:00 - 13:00"] },
-              { day: "Sunday", timeSlots: ["10:00 - 13:00"] },
-            ],
-          };
-          setCurrentUser(dynamicUser);
-          setIsAdmin((session.user as any)?.role === "ADMIN");
-        }
-      } else if (status === "unauthenticated") {
-        if (isMounted) {
-          setCurrentUser(null);
-          setIsAdmin(false);
-        }
-      }
-    }
-
-    syncCurrentUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [session, status]);
-
-  const loginAsMember = async (memberId: string) => {
+  // Direct fast fetch of real database profile
+  const fetchProfile = async (id?: string | null, email?: string | null) => {
+    if (!id && !email) return null;
     try {
-      await signIn("credentials", {
-        memberId,
-        redirect: false,
-      });
-
-      const res = await fetch("/api/members");
+      const url = `/api/users/profile?${id ? `userId=${encodeURIComponent(id)}` : ""}${email ? `&email=${encodeURIComponent(email)}` : ""}`;
+      const res = await fetch(url, { cache: "no-store" });
       if (res.ok) {
-        const dbMembers: CommunityMember[] = await res.json();
-        const found = dbMembers.find((m) => m.id === memberId);
-        if (found) {
-          setCurrentUser(found);
-          setIsAdmin(false);
+        const data = await res.json();
+        if (data && data.id) {
+          setCurrentUser(data);
+          return data;
         }
       }
-    } catch (e) {
-      console.warn("NextAuth signIn fallback:", e);
+    } catch (err) {
+      console.warn("Failed to fetch user profile:", err);
+    }
+    return null;
+  };
+
+  const refreshUser = async () => {
+    const id = session?.user?.id;
+    const email = session?.user?.email;
+    if (id || email) {
+      await fetchProfile(id, email);
     }
   };
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const email = session.user.email?.toLowerCase();
+      const id = session.user.id;
+      setIsAdmin((session.user as any)?.role === "ADMIN");
+
+      // Don't re-fetch if we already have the real user loaded for this email
+      if (email && loadedEmailRef.current === email && currentUser) {
+        return;
+      }
+      if (email) loadedEmailRef.current = email;
+
+      setIsProfileLoading(true);
+      fetchProfile(id, email).finally(() => {
+        setIsProfileLoading(false);
+      });
+    } else if (status === "unauthenticated") {
+      loadedEmailRef.current = null;
+      setCurrentUser(null);
+      setIsAdmin(false);
+      setIsProfileLoading(false);
+    }
+  }, [session?.user?.id, session?.user?.email, status]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     try {
@@ -152,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    loadedEmailRef.current = null;
     setCurrentUser(null);
     setIsAdmin(false);
     try {
@@ -181,18 +127,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const isLoading = status === "loading" || (status === "authenticated" && isProfileLoading && !currentUser);
+
   return (
     <AuthContext.Provider
       value={{
         currentUser,
         isAdmin,
         isLoading,
-        loginAsMember,
         login,
         loginAsAdmin,
         logout,
         updateUserSkills,
         addSkillPoints,
+        refreshUser,
       }}
     >
       {children}

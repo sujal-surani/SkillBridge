@@ -42,8 +42,8 @@ export default function LearningRoomPage() {
   const partner =
     activeSession?.participants.find((p) => p.id !== currentUser?.id) ||
     activeSession?.participants[0];
-  const partnerId = partner?.id || "member-2";
-  const partnerName = partner?.name || "Kavita Nair";
+  const partnerId = partner?.id || "partner";
+  const partnerName = partner?.name || "Exchange Partner";
 
   // Media Controls State
   const [micOn, setMicOn] = useState(true);
@@ -57,7 +57,7 @@ export default function LearningRoomPage() {
   // Collaborative Notes: auto-saved & debounced
   const [notes, setNotes] = useState(
     "# SkillBridge Community Exchange: Live Collaborative Notes\n\n**Mentors:** " +
-      (currentUser?.fullName || "Pooja Sharma") +
+      (currentUser?.fullName || "Community Member") +
       " & " +
       partnerName +
       "\n\n### 1. Skill Swap Fundamentals:\n- Key steps, preparation, and references discussed during this session.\n- Practical tips, ratios, formulas, or posture adjustments.\n\n### 2. Action Items & Practice:\n- Follow-up exercises to practice before the next community exchange."
@@ -69,7 +69,7 @@ export default function LearningRoomPage() {
   // In-room chat
   const [roomChat, setRoomChat] = useState([
     { sender: partnerName, text: `Namaste! The video feed and audio are crystal clear in Room #${roomId}.`, time: "10:01 AM" },
-    { sender: currentUser?.fullName || "Pooja Sharma", text: "Namaste! I'm all set for our exchange session.", time: "10:02 AM" },
+    { sender: currentUser?.fullName || "You", text: "Namaste! I'm all set for our exchange session.", time: "10:02 AM" },
   ]);
   const [chatInput, setChatInput] = useState("");
 
@@ -98,11 +98,15 @@ export default function LearningRoomPage() {
     return () => clearInterval(interval);
   }, [timerRunning, secondsLeft]);
 
-  // 2. Room Exit Synchronization: Short-polling every 3s to detect if partner ended session
+  // 2. Room Exit Synchronization: Short-polling with Poll Lock
   useEffect(() => {
     let isMounted = true;
+    let isSessionPollLocked = false;
 
     async function pollRoomSession() {
+      if (isSessionPollLocked) return;
+      isSessionPollLocked = true;
+
       try {
         const res = await fetch(`/api/sessions?roomId=${encodeURIComponent(roomId)}`);
         if (!res.ok) return;
@@ -130,11 +134,13 @@ export default function LearningRoomPage() {
         }
       } catch (err) {
         // Silently tolerate transient polling errors
+      } finally {
+        isSessionPollLocked = false;
       }
     }
 
     pollRoomSession();
-    const pollInterval = setInterval(pollRoomSession, 3000);
+    const pollInterval = setInterval(pollRoomSession, 4000);
 
     return () => {
       isMounted = false;
@@ -142,12 +148,16 @@ export default function LearningRoomPage() {
     };
   }, [roomId]);
 
-  // 3. In-Room Chat Polling: Short-polling every 3s to sync messages with partner
+  // 3. In-Room Chat Polling: Short-polling with Poll Lock
   useEffect(() => {
     if (!partnerId) return;
     let isMounted = true;
+    let isChatPollLocked = false;
 
     async function pollRoomChat() {
+      if (isChatPollLocked) return;
+      isChatPollLocked = true;
+
       try {
         const url = `/api/messages?peerId=${encodeURIComponent(partnerId)}${
           currentUser?.id ? `&userId=${encodeURIComponent(currentUser.id)}` : ""
@@ -166,11 +176,13 @@ export default function LearningRoomPage() {
         }
       } catch (err) {
         // Silently tolerate transient polling errors
+      } finally {
+        isChatPollLocked = false;
       }
     }
 
     pollRoomChat();
-    const chatInterval = setInterval(pollRoomChat, 3000);
+    const chatInterval = setInterval(pollRoomChat, 3500);
 
     return () => {
       isMounted = false;
@@ -178,8 +190,10 @@ export default function LearningRoomPage() {
     };
   }, [partnerId, currentUser?.id, partnerName, currentUser?.fullName]);
 
-  // 4. Debounced Notes Auto-Save (1000ms debounce to PATCH /api/sessions)
+  // 4. Debounced Notes Auto-Save (1500ms debounce with async lock)
+  const isNotesSavingRef = useRef(false);
   const handleNotesChange = (val: string) => {
+    // Instant local state update
     setNotes(val);
     setNotesSaveStatus("saving");
 
@@ -188,6 +202,9 @@ export default function LearningRoomPage() {
     }
 
     debounceTimerRef.current = setTimeout(async () => {
+      if (isNotesSavingRef.current) return;
+      isNotesSavingRef.current = true;
+
       try {
         await fetch("/api/sessions", {
           method: "PATCH",
@@ -197,12 +214,13 @@ export default function LearningRoomPage() {
             notesMarkdown: val,
           }),
         });
-        setNotesSaveStatus("saved");
       } catch (e) {
         console.warn("Notes auto-save fallback:", e);
+      } finally {
+        isNotesSavingRef.current = false;
         setNotesSaveStatus("saved");
       }
-    }, 1000);
+    }, 1500);
   };
 
   const formatTimer = (totalSeconds: number) => {
@@ -216,8 +234,8 @@ export default function LearningRoomPage() {
     if (!chatInput.trim()) return;
 
     const messageText = chatInput.trim();
-    const senderName = currentUser?.fullName || "Pooja Sharma";
-    const senderId = currentUser?.id || "member-1";
+    const senderName = currentUser?.fullName || "Community Member";
+    const senderId = currentUser?.id || "member";
 
     // Optimistically update local room chat
     setRoomChat((prev) => [
@@ -292,12 +310,12 @@ export default function LearningRoomPage() {
           <Badge variant="match">Community Room #{roomId}</Badge>
           <div>
             <h1 className="text-sm font-bold text-slate-heading">
-              {activeSession ? activeSession.topic : "1-on-1 Community Exchange: Watercolor Painting ⇄ Hatha Yoga"}
+              {activeSession ? activeSession.topic : "1-on-1 Community Exchange Session"}
             </h1>
             <p className="text-xs text-slate-muted">
               {activeSession
                 ? activeSession.participants.map(p => p.name).join(" & ")
-                : "Pooja Sharma (34, Jaipur) & Kavita Nair (39, Kochi)"}
+                : `${currentUser?.fullName || "You"} & ${partnerName}`}
             </p>
           </div>
         </div>
@@ -334,7 +352,7 @@ export default function LearningRoomPage() {
                 <div className="relative w-full h-full">
                   <img
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600"
-                    alt="Pooja Sharma"
+                    alt={currentUser?.fullName || "You"}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -342,7 +360,7 @@ export default function LearningRoomPage() {
               ) : (
                 <div className="text-center text-slate-400 space-y-2">
                   <div className="h-16 w-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-xl font-bold text-white">
-                    PS
+                    {currentUser?.fullName?.charAt(0) || "U"}
                   </div>
                   <p className="text-xs">Camera paused</p>
                 </div>
@@ -351,7 +369,7 @@ export default function LearningRoomPage() {
               <div className="absolute bottom-3 left-3 flex items-center gap-2">
                 <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-xs text-[11px] font-semibold text-white flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Pooja Sharma (You)
+                  {currentUser?.fullName || "You"} (You)
                 </span>
                 {!micOn && (
                   <span className="p-1 rounded-md bg-red-500/80 text-white">
@@ -366,7 +384,7 @@ export default function LearningRoomPage() {
               <div className="relative w-full h-full">
                 <img
                   src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600"
-                  alt="Kavita Nair"
+                  alt={partnerName}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
@@ -375,7 +393,7 @@ export default function LearningRoomPage() {
               <div className="absolute bottom-3 left-3 flex items-center gap-2">
                 <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-xs text-[11px] font-semibold text-white flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Kavita Nair (Yoga Coach)
+                  {partnerName} (Partner)
                 </span>
               </div>
             </div>

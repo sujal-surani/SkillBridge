@@ -4,9 +4,16 @@ import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    const userId = session?.user?.id || req.nextUrl.searchParams.get("userId");
     const roomId = req.nextUrl.searchParams.get("roomId");
+    const queryUserId = req.nextUrl.searchParams.get("userId");
+    let userId: string | null = queryUserId;
+
+    if (!roomId && !userId) {
+      try {
+        const session = await auth();
+        userId = session?.user?.id || null;
+      } catch {}
+    }
 
     // If query by roomId (e.g. in /room/[id])
     if (roomId) {
@@ -101,11 +108,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(formatted);
   } catch (error) {
-    console.error("GET /api/sessions error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch sessions" },
-      { status: 500 }
-    );
+    console.warn("GET /api/sessions warning (returning fallback []):", error);
+    return NextResponse.json([]);
   }
 }
 

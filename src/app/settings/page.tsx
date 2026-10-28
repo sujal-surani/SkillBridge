@@ -21,13 +21,22 @@ export default function SettingsPage() {
   const router = useRouter();
   const { currentUser, logout } = useAuth();
 
-  const [name, setName] = useState(currentUser?.fullName || "Pooja Sharma");
-  const [neighborhood, setNeighborhood] = useState(currentUser?.neighborhood || "C-Scheme");
-  const [city, setCity] = useState(currentUser?.city || "Jaipur, RJ");
+  const [name, setName] = useState(currentUser?.fullName || "");
+  const [neighborhood, setNeighborhood] = useState(currentUser?.neighborhood || "");
+  const [city, setCity] = useState(currentUser?.city || "");
   const [allowPublicSearch, setAllowPublicSearch] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Synchronize state once currentUser loads from database
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.fullName) setName(currentUser.fullName);
+      if (currentUser.neighborhood) setNeighborhood(currentUser.neighborhood);
+      if (currentUser.city) setCity(currentUser.city);
+    }
+  }, [currentUser]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +123,7 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-heading mb-1">Email Address</label>
-                  <Input disabled value={currentUser?.email || "ramesh.kulkarni@gmail.com"} className="text-xs bg-cream-100 cursor-not-allowed" />
+                  <Input disabled value={currentUser?.email || "member@skillbridge.local"} className="text-xs bg-cream-100 cursor-not-allowed" />
                 </div>
 
                 {/* Privacy Toggles */}

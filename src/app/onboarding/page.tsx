@@ -42,33 +42,22 @@ interface LearningSkillItem {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { currentUser, updateUserSkills } = useAuth();
+  const { currentUser, updateUserSkills, refreshUser } = useAuth();
   const [step, setStep] = useState(1);
 
   // Step 1: Teaching Skills
-  const [teachingSkills, setTeachingSkills] = useState<TeachingSkillItem[]>([
-    {
-      name: "Watercolor Landscape Painting & Washes",
-      pillar: "CREATIVE_PRACTICAL",
-      category: "Drawing & Fine Arts",
-      proficiency: "EXPERIENCED",
-      yearsExperience: 8,
-    },
-  ]);
+  const [teachingSkills, setTeachingSkills] = useState<TeachingSkillItem[]>(
+    currentUser?.teachingSkills || []
+  );
   const [newTeachSkill, setNewTeachSkill] = useState("");
   const [newTeachPillar, setNewTeachPillar] = useState<TeachingSkillItem["pillar"]>("CREATIVE_PRACTICAL");
   const [newTeachCategory, setNewTeachCategory] = useState("Drawing & Fine Arts");
   const [newTeachLevel, setNewTeachLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "EXPERIENCED">("EXPERIENCED");
 
   // Step 2: Learning Skills
-  const [learningSkills, setLearningSkills] = useState<LearningSkillItem[]>([
-    {
-      name: "Morning Hatha Yoga & Posture",
-      pillar: "HEALTH_WELLNESS",
-      category: "Health & Fitness",
-      targetProficiency: "BEGINNER",
-    },
-  ]);
+  const [learningSkills, setLearningSkills] = useState<LearningSkillItem[]>(
+    currentUser?.learningSkills || []
+  );
   const [newLearnSkill, setNewLearnSkill] = useState("");
   const [newLearnPillar, setNewLearnPillar] = useState<LearningSkillItem["pillar"]>("HEALTH_WELLNESS");
   const [newLearnCategory, setNewLearnCategory] = useState("Health & Fitness");
@@ -84,10 +73,28 @@ export default function OnboardingPage() {
     currentUser?.bio || "Passionate about sharing my skills and learning practical crafts from neighbors!"
   );
 
+  // Sync with currentUser once loaded from database
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.teachingSkills && currentUser.teachingSkills.length > 0) {
+        setTeachingSkills(currentUser.teachingSkills);
+      }
+      if (currentUser.learningSkills && currentUser.learningSkills.length > 0) {
+        setLearningSkills(currentUser.learningSkills);
+      }
+      if (currentUser.bio) {
+        setBio(currentUser.bio);
+      }
+      if (currentUser.modePreference) {
+        setMode(currentUser.modePreference);
+      }
+    }
+  }, [currentUser]);
+
   const addTeachingSkill = () => {
     if (!newTeachSkill.trim()) return;
-    setTeachingSkills([
-      ...teachingSkills,
+    setTeachingSkills((prev) => [
+      ...prev,
       {
         name: newTeachSkill.trim(),
         pillar: newTeachPillar,
@@ -100,13 +107,13 @@ export default function OnboardingPage() {
   };
 
   const removeTeachingSkill = (idx: number) => {
-    setTeachingSkills(teachingSkills.filter((_, i) => i !== idx));
+    setTeachingSkills((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const addLearningSkill = () => {
     if (!newLearnSkill.trim()) return;
-    setLearningSkills([
-      ...learningSkills,
+    setLearningSkills((prev) => [
+      ...prev,
       {
         name: newLearnSkill.trim(),
         pillar: newLearnPillar,
@@ -118,7 +125,7 @@ export default function OnboardingPage() {
   };
 
   const removeLearningSkill = (idx: number) => {
-    setLearningSkills(learningSkills.filter((_, i) => i !== idx));
+    setLearningSkills((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const toggleDay = (day: string) => {
@@ -137,16 +144,49 @@ export default function OnboardingPage() {
     }
   };
 
+  // Safe navigation that automatically commits typed skills
+  const handleNextStep = () => {
+    if (step === 1 && newTeachSkill.trim()) {
+      addTeachingSkill();
+    } else if (step === 2 && newLearnSkill.trim()) {
+      addLearningSkill();
+    }
+    setStep(step + 1);
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFinish = async () => {
     setIsSubmitting(true);
     try {
-      await fetch("/api/users/profile", {
+      // Auto-commit any pending learning skill entered in step 2
+      let finalLearningSkills = [...learningSkills];
+      if (newLearnSkill.trim()) {
+        finalLearningSkills.push({
+          name: newLearnSkill.trim(),
+          pillar: newLearnPillar,
+          category: newLearnCategory,
+          targetProficiency: newLearnLevel,
+        });
+      }
+
+      let finalTeachingSkills = [...teachingSkills];
+      if (newTeachSkill.trim()) {
+        finalTeachingSkills.push({
+          name: newTeachSkill.trim(),
+          pillar: newTeachPillar,
+          category: newTeachCategory,
+          proficiency: newTeachLevel,
+          yearsExperience: 2,
+        });
+      }
+
+      const res = await fetch("/api/users/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: currentUser?.id,
+          email: currentUser?.email,
           bio,
           modePreference: mode,
           availability: selectedDays.map((day) => ({
@@ -154,15 +194,29 @@ export default function OnboardingPage() {
             timeSlots: ["10:00 - 13:00", "16:00 - 19:00"],
           })),
           spokenLanguages: selectedLanguages,
-          teachingSkills,
-          learningSkills,
+          teachingSkills: finalTeachingSkills,
+          learningSkills: finalLearningSkills,
         }),
       });
-    } catch (err) {
-      console.error("Failed to persist onboarding profile:", err);
-    } finally {
-      updateUserSkills(teachingSkills, learningSkills);
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server responded with status ${res.status}`);
+      }
+
+      // Explicitly update React context skills immediately
+      updateUserSkills(finalTeachingSkills, finalLearningSkills);
+      // And refresh profile from database
+      await refreshUser();
+
+      // Invalidate Next.js client router cache and navigate
+      router.refresh();
       router.push("/dashboard");
+    } catch (err: any) {
+      console.error("Failed to persist onboarding profile:", err);
+      alert("Error saving profile: " + (err.message || "Please try again."));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -209,6 +263,12 @@ export default function OnboardingPage() {
                 Active Skills You Can Share ({teachingSkills.length})
               </label>
 
+              {teachingSkills.length === 0 && (
+                <div className="py-4 px-3 rounded-2xl bg-cream-100 border border-dashed border-cream-300 text-center text-xs text-slate-muted">
+                  No skills added yet. Use the form below to add a skill you can share with neighbors!
+                </div>
+              )}
+
               {teachingSkills.map((sk, idx) => (
                 <div
                   key={idx}
@@ -236,13 +296,19 @@ export default function OnboardingPage() {
             {/* Add New Skill Form */}
             <div className="p-4 rounded-2xl border border-dashed border-burgundy-300 bg-burgundy-50/30 space-y-3">
               <span className="text-xs font-bold text-burgundy-800 block">
-                + Add Another Skill You Can Teach
+                + Add A Skill You Can Teach
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Input
                   placeholder="e.g. Yoga, Sourdough Baking, Excel, Guitar"
                   value={newTeachSkill}
                   onChange={(e) => setNewTeachSkill(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addTeachingSkill();
+                    }
+                  }}
                   className="sm:col-span-1 text-xs"
                 />
                 <select
@@ -294,6 +360,12 @@ export default function OnboardingPage() {
                 Skills You Want to Learn ({learningSkills.length})
               </label>
 
+              {learningSkills.length === 0 && (
+                <div className="py-4 px-3 rounded-2xl bg-emerald-50/40 border border-dashed border-emerald-200 text-center text-xs text-slate-muted">
+                  No learning goals added yet. Use the form below to add skills you want to learn!
+                </div>
+              )}
+
               {learningSkills.map((sk, idx) => (
                 <div
                   key={idx}
@@ -328,6 +400,12 @@ export default function OnboardingPage() {
                   placeholder="e.g. Spanish, First Aid, Gardening, Python"
                   value={newLearnSkill}
                   onChange={(e) => setNewLearnSkill(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addLearningSkill();
+                    }
+                  }}
                   className="sm:col-span-1 text-xs"
                 />
                 <select
@@ -403,23 +481,31 @@ export default function OnboardingPage() {
 
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-slate-heading block mb-2">
-                Your Typical Free Days
+                Days Available for Skill Swapping
               </label>
               <div className="flex flex-wrap gap-2">
-                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((d) => {
-                  const isSelected = selectedDays.includes(d);
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((day) => {
+                  const isSelected = selectedDays.includes(day);
                   return (
                     <button
-                      key={d}
+                      key={day}
                       type="button"
-                      onClick={() => toggleDay(d)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      onClick={() => toggleDay(day)}
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
                         isSelected
-                          ? "bg-burgundy-600 text-white shadow-xs"
-                          : "bg-cream-200 text-slate-heading hover:bg-cream-300"
+                          ? "bg-burgundy-600 text-white border-burgundy-600 shadow-xs"
+                          : "bg-white text-slate-heading border-[#EDE7DE] hover:bg-cream-100"
                       }`}
                     >
-                      {d}
+                      {day}
                     </button>
                   );
                 })}
@@ -428,7 +514,7 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* STEP 4: Languages & Bio */}
+        {/* STEP 4: Spoken Languages & Bio */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
@@ -436,17 +522,28 @@ export default function OnboardingPage() {
                 Spoken Languages
               </label>
               <div className="flex flex-wrap gap-2">
-                {["English", "Hindi", "Marathi", "Gujarati", "Bengali", "Tamil", "Telugu", "Kannada", "Urdu", "Punjabi"].map((l) => {
+                {[
+                  "English",
+                  "Hindi",
+                  "Marathi",
+                  "Gujarati",
+                  "Tamil",
+                  "Telugu",
+                  "Bengali",
+                  "Spanish",
+                  "French",
+                  "German",
+                ].map((l) => {
                   const isSelected = selectedLanguages.includes(l);
                   return (
                     <button
                       key={l}
                       type="button"
                       onClick={() => toggleLanguage(l)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                         isSelected
-                          ? "bg-peach-200 text-burgundy-800 font-bold border border-peach-300"
-                          : "bg-white border border-cream-300 text-slate-muted hover:bg-cream-100"
+                          ? "bg-peach-300 text-burgundy-800 border-peach-400 font-bold"
+                          : "bg-white text-slate-heading border-[#EDE7DE] hover:bg-cream-100"
                       }`}
                     >
                       {l}
@@ -499,7 +596,7 @@ export default function OnboardingPage() {
             <Button
               type="button"
               variant="primary"
-              onClick={() => setStep(step + 1)}
+              onClick={handleNextStep}
               className="gap-1.5"
             >
               Next Step

@@ -31,9 +31,43 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { useSwap } from "@/lib/context/SwapContext";
 
 export default function ProfilePage() {
-  const { currentUser } = useAuth();
+  const { currentUser, isLoading } = useAuth();
   const { sessions, reviews, transactions } = useSwap();
   const [activeTab, setActiveTab] = useState<"portfolio" | "history" | "ledger" | "reviews">("portfolio");
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="rounded-3xl bg-white border border-[#EDE7DE] p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 flex-1">
+            <div className="h-20 w-20 rounded-3xl bg-cream-200 shrink-0" />
+            <div className="space-y-2.5 flex-1">
+              <div className="h-6 w-52 rounded-xl bg-cream-200" />
+              <div className="h-4 w-36 rounded-xl bg-cream-200" />
+              <div className="h-3.5 w-64 rounded-xl bg-cream-200" />
+            </div>
+          </div>
+          <div className="h-10 w-36 rounded-2xl bg-cream-200 shrink-0" />
+        </div>
+
+        {/* Bio Card Skeleton */}
+        <div className="h-32 rounded-3xl bg-white border border-[#EDE7DE] p-6" />
+
+        {/* 2-Column Skills Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="h-48 rounded-3xl bg-white border border-[#EDE7DE] p-6 space-y-3">
+            <div className="h-5 w-32 rounded-xl bg-cream-200" />
+            <div className="h-14 rounded-2xl bg-cream-100" />
+          </div>
+          <div className="h-48 rounded-3xl bg-white border border-[#EDE7DE] p-6 space-y-3">
+            <div className="h-5 w-32 rounded-xl bg-cream-200" />
+            <div className="h-14 rounded-2xl bg-cream-100" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!currentUser) {
     return (
@@ -153,18 +187,31 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-3 pt-1">
-                {currentUser.teachingSkills.map((sk) => (
-                  <div
-                    key={sk.name}
-                    className="p-3.5 rounded-2xl bg-burgundy-50/60 border border-burgundy-200 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-heading">{sk.name}</p>
-                      <p className="text-[11px] text-slate-muted">{sk.category} • {sk.yearsExperience} yrs experience</p>
+                {currentUser.teachingSkills.length === 0 ? (
+                  <div className="p-4 rounded-2xl bg-cream-100 border border-dashed border-cream-300 text-center text-xs text-slate-muted">
+                    <p>No teaching skills listed yet.</p>
+                    <div className="mt-2">
+                      <Link href="/onboarding">
+                        <Button variant="peach" size="sm" className="text-xs">
+                          + Add Skills You Can Teach
+                        </Button>
+                      </Link>
                     </div>
-                    <Badge variant="burgundy">{sk.proficiency}</Badge>
                   </div>
-                ))}
+                ) : (
+                  currentUser.teachingSkills.map((sk) => (
+                    <div
+                      key={sk.name}
+                      className="p-3.5 rounded-2xl bg-burgundy-50/60 border border-burgundy-200 flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <p className="font-bold text-slate-heading">{sk.name}</p>
+                        <p className="text-[11px] text-slate-muted">{sk.category} • {sk.yearsExperience} yrs experience</p>
+                      </div>
+                      <Badge variant="burgundy">{sk.proficiency}</Badge>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
 
@@ -178,18 +225,31 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-3 pt-1">
-                {currentUser.learningSkills.map((sk) => (
-                  <div
-                    key={sk.name}
-                    className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-heading">{sk.name}</p>
-                      <p className="text-[11px] text-slate-muted">{sk.category}</p>
+                {currentUser.learningSkills.length === 0 ? (
+                  <div className="p-4 rounded-2xl bg-emerald-50/40 border border-dashed border-emerald-200 text-center text-xs text-slate-muted">
+                    <p>No learning goals added yet.</p>
+                    <div className="mt-2">
+                      <Link href="/onboarding">
+                        <Button variant="secondary" size="sm" className="text-xs text-emerald-800 border-emerald-300 hover:bg-emerald-50">
+                          + Add Desired Skills
+                        </Button>
+                      </Link>
                     </div>
-                    <Badge variant="success">Target: {sk.targetProficiency}</Badge>
                   </div>
-                ))}
+                ) : (
+                  currentUser.learningSkills.map((sk) => (
+                    <div
+                      key={sk.name}
+                      className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <p className="font-bold text-slate-heading">{sk.name}</p>
+                        <p className="text-[11px] text-slate-muted">{sk.category}</p>
+                      </div>
+                      <Badge variant="success">Target: {sk.targetProficiency}</Badge>
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           </div>

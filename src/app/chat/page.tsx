@@ -92,13 +92,17 @@ export default function ChatPage() {
     scrollToBottom();
   }, [currentThread.length, activePeerId]);
 
-  // Initial Fetch & 3-Second Short-Polling for Active Conversation
+  // Initial Fetch & 3-Second Short-Polling for Active Conversation with Poll Lock
   useEffect(() => {
     let isMounted = true;
+    let isPollLocked = false;
     const currentUserId = currentUser?.id || "member-1";
 
-    async function fetchMessages(isPolling = false) {
-      if (!isPolling) setIsLoadingMessages(true);
+    async function fetchMessages(polling = false) {
+      if (isPollLocked) return; // Drop overlapping fetch calls if previous one is hanging
+      isPollLocked = true;
+
+      if (!polling) setIsLoadingMessages(true);
 
       try {
         const res = await fetch(
@@ -122,7 +126,8 @@ export default function ChatPage() {
       } catch (err) {
         // Silently tolerate background polling errors
       } finally {
-        if (isMounted && !isPolling) {
+        isPollLocked = false;
+        if (isMounted && !polling) {
           setIsLoadingMessages(false);
         }
       }
@@ -137,14 +142,14 @@ export default function ChatPage() {
     };
   }, [activePeerId, currentUser?.id]);
 
-  // Handle Send Message: Optimistic UI + POST /api/messages
+  // Handle Send Message: Instant Optimistic UI + Asynchronous POST /api/messages
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || isSending) return;
+    if (!inputText.trim()) return;
 
     const messageText = inputText.trim();
-    const currentUserId = currentUser?.id || "member-1";
-    const currentUserName = currentUser?.fullName || "Pooja Sharma";
+    const currentUserId = currentUser?.id || "member";
+    const currentUserName = currentUser?.fullName || "Community Member";
 
     const optimisticMsg: ChatMessage = {
       id: "msg-" + Date.now(),
@@ -155,16 +160,15 @@ export default function ChatPage() {
       isSelf: true,
     };
 
-    // 1. Optimistic append to UI
+    // 1. Instant optimistic append to UI BEFORE network request
+    setInputText("");
     setMessages((prev) => ({
       ...prev,
       [activePeerId]: [...(prev[activePeerId] || []), optimisticMsg],
     }));
-    setInputText("");
-    setIsSending(true);
 
     try {
-      // 2. Fire backend POST request to PostgreSQL
+      // 2. Fire backend POST request to PostgreSQL asynchronously
       const res = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -202,8 +206,8 @@ export default function ChatPage() {
     e.preventDefault();
     setSessionScheduled(true);
 
-    const currentUserId = currentUser?.id || "member-1";
-    const currentUserName = currentUser?.fullName || "Pooja Sharma";
+    const currentUserId = currentUser?.id || "member";
+    const currentUserName = currentUser?.fullName || "Community Member";
     const scheduleContent = `📅 Community exchange scheduled for ${scheduledSlot}. Room #SB-482 is ready!`;
 
     const confirmMsg: ChatMessage = {

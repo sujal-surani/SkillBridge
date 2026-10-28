@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Check,
   X,
-  Loader2
+  Loader2,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -199,28 +200,26 @@ export default function MyMatchesPage() {
                 </div>
               </div>
 
-              {/* 6-Factor Algorithmic Score Breakdown Progress */}
-              <div className="mt-4 pt-4 border-t border-cream-200 space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-muted block">
-                  Match Breakdown
-                </span>
-                <div className="space-y-1.5 text-[11px]">
+              {/* Compact 6-Factor Score Breakdown (Minimalist & Collapsible) */}
+              <details className="group mt-4 pt-3 border-t border-cream-200">
+                <summary className="flex items-center justify-between cursor-pointer list-none text-[11px] font-semibold text-slate-muted hover:text-burgundy-700 transition-colors select-none">
+                  <span>Match Score Breakdown (6 Dimensions)</span>
+                  <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-open:rotate-180" />
+                </summary>
+                <div className="grid grid-cols-2 gap-1.5 pt-2.5">
                   {match.breakdown.map((item, idx) => (
-                    <div key={idx} className="space-y-0.5">
-                      <div className="flex justify-between text-slate-heading">
-                        <span>{item.dimension}</span>
-                        <span className="font-bold">{item.points} / {item.max} pts</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-cream-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-burgundy-600 rounded-full transition-all"
-                          style={{ width: `${(item.points / item.max) * 100}%` }}
-                        />
-                      </div>
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-cream-100/70 border border-cream-200 text-[10px]"
+                    >
+                      <span className="text-slate-muted truncate mr-1">{item.dimension}</span>
+                      <span className="font-bold text-slate-heading shrink-0">
+                        {item.points}/{item.max}
+                      </span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </details>
             </div>
 
             {/* Bottom Actions */}

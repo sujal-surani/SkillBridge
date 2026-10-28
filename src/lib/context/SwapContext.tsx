@@ -58,29 +58,39 @@ export function SwapProvider({ children }: { children: React.ReactNode }) {
   const [reviews, setReviews] = useState<SessionReview[]>([]);
   const [transactions, setTransactions] = useState<PointsTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const loadedUserIdRef = React.useRef<string | null>(null);
 
   // Initial Data Fetching from real Prisma Next.js API Route Handlers
   useEffect(() => {
     let isMounted = true;
+    const userId = currentUser?.id;
+
+    if (!userId) {
+      setProposals([]);
+      setSessions([]);
+      setReviews([]);
+      setTransactions([]);
+      loadedUserIdRef.current = null;
+      return;
+    }
+
+    // Guard against duplicate / infinite fetch cascades
+    if (loadedUserIdRef.current === userId) {
+      return;
+    }
+    loadedUserIdRef.current = userId;
 
     async function fetchInitialData() {
-      if (!currentUser) {
-        setProposals([]);
-        setSessions([]);
-        setReviews([]);
-        setTransactions([]);
-        return;
-      }
+      if (!userId) return;
+      const validUserId = userId;
       setIsLoading(true);
 
       try {
-        const userId = currentUser.id;
-
         const [propRes, sessRes, revRes, karmaRes] = await Promise.all([
-          fetch(`/api/proposals?userId=${encodeURIComponent(userId)}`),
-          fetch(`/api/sessions?userId=${encodeURIComponent(userId)}`),
-          fetch(`/api/reviews?targetMemberId=${encodeURIComponent(userId)}`),
-          fetch(`/api/karma?userId=${encodeURIComponent(userId)}`),
+          fetch(`/api/proposals?userId=${encodeURIComponent(validUserId)}`),
+          fetch(`/api/sessions?userId=${encodeURIComponent(validUserId)}`),
+          fetch(`/api/reviews?targetMemberId=${encodeURIComponent(validUserId)}`),
+          fetch(`/api/karma?userId=${encodeURIComponent(validUserId)}`),
         ]);
 
         if (!isMounted) return;
@@ -126,7 +136,7 @@ export function SwapProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [currentUser]);
+  }, [currentUser?.id]);
 
   // 1. Create Proposal: POST /api/proposals + Optimistic UI
   const createProposal = useCallback(

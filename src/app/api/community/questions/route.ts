@@ -78,11 +78,8 @@ export async function GET() {
 
     return NextResponse.json(formatted);
   } catch (error) {
-    console.error("GET /api/community/questions error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch community questions" },
-      { status: 500 }
-    );
+    console.warn("GET /api/community/questions warning (returning fallback []):", error);
+    return NextResponse.json([]);
   }
 }
 

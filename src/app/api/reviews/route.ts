@@ -50,11 +50,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(formatted);
   } catch (error) {
-    console.error("GET /api/reviews error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch reviews" },
-      { status: 500 }
-    );
+    console.warn("GET /api/reviews warning (returning fallback []):", error);
+    return NextResponse.json([]);
   }
 }
 

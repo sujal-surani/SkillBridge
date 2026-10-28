@@ -102,10 +102,10 @@ export default function CommunityPage() {
       id: tempId,
       title: newTitle.trim(),
       content: newContent.trim(),
-      authorName: currentUser?.fullName || "Ramesh Kulkarni",
-      authorAge: currentUser?.age || 45,
+      authorName: currentUser?.fullName || "Community Member",
+      authorAge: currentUser?.age || 28,
       authorOccupation: currentUser?.occupationOrInterest || "Community Member",
-      authorNeighborhood: `${currentUser?.neighborhood || "Koregaon Park"}, ${currentUser?.city || "Pune"}`,
+      authorNeighborhood: `${currentUser?.neighborhood || "Resident"}, ${currentUser?.city || "Community Hub"}`,
       authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
       pillar: "CREATIVE_PRACTICAL",
       tags: tagsArray.length > 0 ? tagsArray : ["General"],
@@ -159,7 +159,7 @@ export default function CommunityPage() {
 
     const newReply = {
       id: tempReplyId,
-      authorName: currentUser?.fullName || "Ramesh Kulkarni",
+      authorName: currentUser?.fullName || "Community Member",
       authorOccupation: `${currentUser?.occupationOrInterest || "Community Member"} (${currentUser?.age || 45}, ${currentUser?.city?.split(",")[0] || "Hub"})`,
       authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
       content: contentToSend,

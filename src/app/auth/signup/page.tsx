@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { loginAsMember } = useAuth();
+  const { login } = useAuth();
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("28");
   const [email, setEmail] = useState("");
@@ -19,15 +19,49 @@ export default function SignupPage() {
   const [city, setCity] = useState("Pune, MH");
   const [occupation, setOccupation] = useState("Gardening & Organic Food Enthusiast");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      loginAsMember("member-1");
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName,
+          age,
+          email,
+          password,
+          neighborhood,
+          city,
+          occupation,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.error || "Failed to create account. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Authenticate newly created user via NextAuth
+      const loginOk = await login(email, password);
+      if (loginOk) {
+        router.push("/onboarding");
+      } else {
+        // Fallback redirect to onboarding even if credentials session initializes on mount
+        router.push("/onboarding");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "An unexpected error occurred.");
+    } finally {
       setIsLoading(false);
-      router.push("/onboarding");
-    }, 600);
+    }
   };
 
   return (
@@ -48,6 +82,12 @@ export default function SignupPage() {
 
         {/* Card */}
         <div className="p-6 sm:p-8 rounded-3xl bg-white border border-[#EDE7DE] shadow-card">
+          {errorMsg && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 font-medium">
+              {errorMsg}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
@@ -58,7 +98,7 @@ export default function SignupPage() {
                   <Input
                     type="text"
                     required
-                    placeholder="e.g. Ramesh Kulkarni"
+                    placeholder="e.g. Priya Sharma"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="pl-9 text-xs"
@@ -76,7 +116,7 @@ export default function SignupPage() {
                   min="13"
                   max="100"
                   required
-                  placeholder="e.g. 45"
+                  placeholder="e.g. 28"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   className="text-xs"
@@ -92,7 +132,7 @@ export default function SignupPage() {
                 <Input
                   type="email"
                   required
-                  placeholder="e.g. ramesh.kulkarni@gmail.com"
+                  placeholder="e.g. yourname@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-9 text-xs"

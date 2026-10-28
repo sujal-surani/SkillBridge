@@ -67,6 +67,15 @@ export default function ExploreSkillsPage() {
   ];
 
   const filteredMembers = members.filter((m) => {
+    // Exclude currently logged in user from explore results
+    if (
+      currentUser &&
+      (m.id === currentUser.id ||
+        (currentUser.email && m.email?.toLowerCase() === currentUser.email.toLowerCase()))
+    ) {
+      return false;
+    }
+
     const matchesSearch =
       m.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.city.toLowerCase().includes(searchQuery.toLowerCase()) ||

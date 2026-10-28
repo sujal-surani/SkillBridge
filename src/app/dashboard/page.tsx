@@ -647,7 +647,7 @@ export default function DashboardPage() {
                 </div>
                 <h4 className="text-sm font-bold text-slate-heading">Preventing watercolor paper from buckling during heavy washes</h4>
                 <p className="text-xs text-slate-body line-clamp-2 leading-relaxed">
-                  Asked by Siddharth (Bengaluru) • Best answer by Pooja Sharma: &quot;Tape down 300 GSM cotton paper to a drawing board using water-activated gummed tape before wetting...&quot;
+                  Asked by a local artist • Best community solution: &quot;Tape down 300 GSM cotton paper to a drawing board using water-activated gummed tape before wetting...&quot;
                 </p>
                 <Link href="/community" className="block pt-1 text-xs font-bold text-burgundy-700 hover:underline">
                   View full solution & thread &rarr;
@@ -661,7 +661,7 @@ export default function DashboardPage() {
                 </div>
                 <h4 className="text-sm font-bold text-slate-heading">Best organic mix for balcony tomato planters in Indian climate</h4>
                 <p className="text-xs text-slate-body line-clamp-2 leading-relaxed">
-                  Asked by Kavita Nair (Kochi) • Discussion led by Ramesh Kulkarni on vermicompost, coco peat ratios, and neem cake powder...
+                  Asked by an apartment gardener • Community tips on vermicompost, coco peat ratios, and neem cake powder...
                 </p>
                 <Link href="/community" className="block pt-1 text-xs font-bold text-burgundy-700 hover:underline">
                   Contribute an answer &rarr;

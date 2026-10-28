@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Sparkles, 
@@ -21,10 +22,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 
 export default function HomePage() {
-  const featuredMembers = INITIAL_MEMBERS.slice(0, 3);
+  const [featuredMembers, setFeaturedMembers] = useState<CommunityMember[]>([]);
+
+  useEffect(() => {
+    async function loadFeatured() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setFeaturedMembers(data.slice(0, 3));
+        }
+      } catch (err) {}
+    }
+    loadFeatured();
+  }, []);
 
   return (
     <div className="relative overflow-hidden">

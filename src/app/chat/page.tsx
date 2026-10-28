@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 
 interface ChatMessage {
   id: string;
@@ -38,72 +38,49 @@ interface ChatMessage {
   };
 }
 
-// Seed message conversations for initial baseline or cold-start
-const SEED_CHAT_CONVERSATIONS: Record<string, ChatMessage[]> = {
-  "member-2": [
-    {
-      id: "msg-1",
-      senderId: "member-2",
-      senderName: "Kavita Nair",
-      text: "Namaste Pooja! I saw your stunning botanical watercolor illustrations. I have always wanted to learn wet-on-wet landscape painting.",
-      timestamp: "10:10 AM",
-      isSelf: false,
-    },
-    {
-      id: "msg-2",
-      senderId: "member-1",
-      senderName: "Pooja Sharma",
-      text: "Namaste Kavitaji! Thank you so much! And I desperately need your help with morning Hatha Yoga stretches—my neck and upper back get so stiff after hours at the easel.",
-      timestamp: "10:14 AM",
-      isSelf: true,
-    },
-    {
-      id: "msg-3",
-      senderId: "member-1",
-      senderName: "Pooja Sharma",
-      text: "Here is a quick reference guide on beginner watercolor paints and cold-pressed 300 GSM paper before our session:",
-      timestamp: "10:16 AM",
-      isSelf: true,
-      attachment: {
-        name: "watercolor_palette_brush_guide.pdf",
-        type: "file",
-        size: "1.4 MB",
-      },
-    },
-    {
-      id: "msg-4",
-      senderId: "member-2",
-      senderName: "Kavita Nair",
-      text: "This guide is wonderful! Let's do a 60-min exchange this Saturday at 10 AM in the SkillBridge Learning Room. We'll start with 30 mins of gentle spine alignment yoga, followed by a watercolor sky wash tutorial!",
-      timestamp: "10:18 AM",
-      isSelf: false,
-    },
-  ],
-  "member-3": [
-    {
-      id: "msg-10",
-      senderId: "member-3",
-      senderName: "Ramesh Kulkarni",
-      text: "Namaste! I would love to learn how you sketch botanical flowers from the garden.",
-      timestamp: "Yesterday",
-      isSelf: false,
-    },
-  ],
-};
-
 export default function ChatPage() {
   const { currentUser } = useAuth();
-  const [activePeerId, setActivePeerId] = useState("member-2"); // Kavita Nair (Yoga)
+  const [peers, setPeers] = useState<CommunityMember[]>([]);
+  const [activePeerId, setActivePeerId] = useState("member-2"); // Default to Kavita Nair
   const [inputText, setInputText] = useState("");
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
   const [scheduledSlot, setScheduledSlot] = useState("Saturday at 10:00 AM IST");
   const [sessionScheduled, setSessionScheduled] = useState(false);
-  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>(SEED_CHAT_CONVERSATIONS);
+  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  const activePeer = INITIAL_MEMBERS.find((m) => m.id === activePeerId) || INITIAL_MEMBERS[1];
+  // Fetch live peers from database
+  useEffect(() => {
+    async function loadPeers() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setPeers(data);
+          const other = data.find((p: CommunityMember) => p.id !== currentUser?.id);
+          if (other && !data.some((p: CommunityMember) => p.id === activePeerId)) {
+            setActivePeerId(other.id);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load chat peers:", err);
+      }
+    }
+    loadPeers();
+  }, [currentUser?.id]);
+
+  const activePeer = peers.find((m) => m.id === activePeerId) || peers[0] || {
+    id: activePeerId,
+    fullName: "Community Member",
+    avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
+    occupationOrInterest: "Neighbor & Skill Exchanger",
+    city: "Community Hub",
+    averageRating: 5.0,
+    totalSessions: 1,
+  };
   const currentThread = messages[activePeerId] || [];
 
   // Scroll to bottom of message thread
@@ -289,11 +266,11 @@ export default function ChatPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-cream-200">
-            {INITIAL_MEMBERS.slice(1, 4).map((m) => {
+            {peers.filter((m) => m.id !== currentUser?.id).map((m) => {
               const isSelected = m.id === activePeerId;
               const lastMsg = (messages[m.id] && messages[m.id].length > 0)
                 ? messages[m.id][messages[m.id].length - 1].text
-                : (m.id === "member-2" ? "Let's do a 60-min exchange!" : "Botanical flower sketches");
+                : (m.id === "member-2" ? "Let's do a 60-min exchange!" : "Hello neighbor!");
 
               return (
                 <button

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   HelpCircle, 
@@ -23,12 +23,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { INITIAL_COMMUNITY_QUESTIONS, CommunityQuestion } from "@/lib/data/mock-data";
+import { CommunityQuestion } from "@/lib/types";
 import { useAuth } from "@/lib/context/AuthContext";
 
 export default function CommunityPage() {
   const { currentUser } = useAuth();
-  const [questions, setQuestions] = useState<CommunityQuestion[]>(INITIAL_COMMUNITY_QUESTIONS);
+  const [questions, setQuestions] = useState<CommunityQuestion[]>([]);
   const [selectedTag, setSelectedTag] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [postModalOpen, setPostModalOpen] = useState(false);
@@ -44,6 +44,23 @@ export default function CommunityPage() {
 
   const allTags = ["ALL", "Gardening", "Organic", "Plant Care", "Excel", "Budgeting", "Yoga", "First Aid", "Baking"];
 
+  // Fetch live questions from DB on mount
+  useEffect(() => {
+    async function fetchQuestions() {
+      try {
+        const res = await fetch("/api/community/questions");
+        if (!res.ok) return;
+        const dbQuestions: CommunityQuestion[] = await res.json();
+        if (Array.isArray(dbQuestions)) {
+          setQuestions(dbQuestions);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch community questions:", err);
+      }
+    }
+    fetchQuestions();
+  }, []);
+
   const filteredQuestions = questions.filter((q) => {
     const matchesSearch =
       q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,18 +74,32 @@ export default function CommunityPage() {
     return matchesSearch && matchesTag;
   });
 
-  const handleUpvote = (id: string) => {
-    setQuestions(
-      questions.map((q) => (q.id === id ? { ...q, upvotes: q.upvotes + 1 } : q))
+  const handleUpvote = async (id: string) => {
+    // Optimistic update
+    setQuestions((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, upvotes: q.upvotes + 1 } : q))
     );
+
+    try {
+      await fetch("/api/community/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: id }),
+      });
+    } catch (err) {
+      console.warn("Failed to upvote question:", err);
+    }
   };
 
-  const handleCreateQuestion = (e: React.FormEvent) => {
+  const handleCreateQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
+    const tempId = "q-" + Date.now();
+    const tagsArray = newTags.split(",").map((t) => t.trim()).filter(Boolean);
+
     const newQ: CommunityQuestion = {
-      id: "q-" + Date.now(),
+      id: tempId,
       title: newTitle.trim(),
       content: newContent.trim(),
       authorName: currentUser?.fullName || "Ramesh Kulkarni",
@@ -77,7 +108,7 @@ export default function CommunityPage() {
       authorNeighborhood: `${currentUser?.neighborhood || "Koregaon Park"}, ${currentUser?.city || "Pune"}`,
       authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
       pillar: "CREATIVE_PRACTICAL",
-      tags: newTags.split(",").map((t) => t.trim()),
+      tags: tagsArray.length > 0 ? tagsArray : ["General"],
       createdAt: "Just now",
       upvotes: 1,
       isSolved: false,
@@ -85,29 +116,62 @@ export default function CommunityPage() {
       replies: [],
     };
 
-    setQuestions([newQ, ...questions]);
+    // Optimistic update
+    setQuestions((prev) => [newQ, ...prev]);
     setNewTitle("");
     setNewContent("");
     setPostModalOpen(false);
+
+    try {
+      const res = await fetch("/api/community/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authorId: currentUser?.id,
+          authorName: currentUser?.fullName,
+          authorAvatar: currentUser?.avatarUrl,
+          authorNeighborhood: currentUser?.neighborhood,
+          authorCity: currentUser?.city,
+          title: newQ.title,
+          content: newQ.content,
+          pillar: newQ.pillar,
+          tags: newQ.tags,
+        }),
+      });
+
+      if (res.ok) {
+        const created: CommunityQuestion = await res.json();
+        setQuestions((prev) =>
+          prev.map((q) => (q.id === tempId ? { ...created, replies: [] } : q))
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to persist community question:", err);
+    }
   };
 
-  const handleAddReply = (e: React.FormEvent, questionId: string) => {
+  const handleAddReply = async (e: React.FormEvent, questionId: string) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
 
-    setQuestions(
-      questions.map((q) => {
+    const tempReplyId = "reply-" + Date.now();
+    const contentToSend = replyContent.trim();
+
+    const newReply = {
+      id: tempReplyId,
+      authorName: currentUser?.fullName || "Ramesh Kulkarni",
+      authorOccupation: `${currentUser?.occupationOrInterest || "Community Member"} (${currentUser?.age || 45}, ${currentUser?.city?.split(",")[0] || "Hub"})`,
+      authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
+      content: contentToSend,
+      createdAt: "Just now",
+      isSolution: false,
+      upvotes: 0,
+    };
+
+    // Optimistic update
+    setQuestions((prev) =>
+      prev.map((q) => {
         if (q.id === questionId) {
-          const newReply = {
-            id: "reply-" + Date.now(),
-            authorName: currentUser?.fullName || "Ramesh Kulkarni",
-            authorOccupation: `${currentUser?.occupationOrInterest} (${currentUser?.age}, ${currentUser?.city.split(",")[0]})`,
-            authorAvatar: currentUser?.avatarUrl || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
-            content: replyContent.trim(),
-            createdAt: "Just now",
-            isSolution: false,
-            upvotes: 0,
-          };
           return {
             ...q,
             repliesCount: q.repliesCount + 1,
@@ -118,11 +182,45 @@ export default function CommunityPage() {
       })
     );
     setReplyContent("");
+
+    try {
+      const res = await fetch("/api/community/replies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId,
+          content: contentToSend,
+          authorId: currentUser?.id,
+          authorName: currentUser?.fullName,
+          authorAvatar: currentUser?.avatarUrl,
+        }),
+      });
+
+      if (res.ok) {
+        const createdReply = await res.json();
+        setQuestions((prev) =>
+          prev.map((q) => {
+            if (q.id === questionId) {
+              return {
+                ...q,
+                replies: q.replies.map((r) =>
+                  r.id === tempReplyId ? createdReply : r
+                ),
+              };
+            }
+            return q;
+          })
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to post advice reply:", err);
+    }
   };
 
-  const handleMarkSolution = (questionId: string, replyId: string) => {
-    setQuestions(
-      questions.map((q) => {
+  const handleMarkSolution = async (questionId: string, replyId: string) => {
+    // Optimistic update
+    setQuestions((prev) =>
+      prev.map((q) => {
         if (q.id === questionId) {
           return {
             ...q,
@@ -136,6 +234,19 @@ export default function CommunityPage() {
         return q;
       })
     );
+
+    try {
+      await fetch("/api/community/replies", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId,
+          replyId,
+        }),
+      });
+    } catch (err) {
+      console.warn("Failed to mark solution:", err);
+    }
   };
 
   return (

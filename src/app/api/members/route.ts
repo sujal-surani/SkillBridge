@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { CommunityMember } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 

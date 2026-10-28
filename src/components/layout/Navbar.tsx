@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 
 export function Navbar() {
@@ -28,10 +28,22 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
+  const [switchableMembers, setSwitchableMembers] = React.useState<CommunityMember[]>([]);
   const { currentUser, loginAsMember, logout } = useAuth();
 
   React.useEffect(() => {
     setMounted(true);
+    async function loadMembers() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setSwitchableMembers(data);
+        }
+      } catch (err) {}
+    }
+    loadMembers();
   }, []);
 
   const navLinks = [
@@ -126,7 +138,7 @@ export function Navbar() {
                       <p className="px-3 py-1 text-[10px] font-bold uppercase text-slate-muted tracking-wider">
                         Switch Community Persona (Demo)
                       </p>
-                      {INITIAL_MEMBERS.map((m) => (
+                      {switchableMembers.map((m) => (
                         <button
                           key={m.id}
                           onClick={() => {

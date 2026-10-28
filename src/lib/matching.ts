@@ -1,4 +1,4 @@
-import { CommunityMember } from "./data/mock-data";
+import { CommunityMember } from "./types";
 
 export interface MatchScoreBreakdown {
   totalScore: number; // 0 - 100

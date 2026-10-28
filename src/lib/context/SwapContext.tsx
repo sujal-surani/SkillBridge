@@ -1,73 +1,24 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { CommunityMember } from "@/lib/data/mock-data";
+import {
+  CommunityMember,
+  SwapProposal,
+  Participant,
+  SwapSession,
+  SessionReview,
+  PointsTransaction,
+} from "@/lib/types";
 import { useAuth } from "@/lib/context/AuthContext";
 import { toast } from "sonner";
 
-export interface SwapProposal {
-  id: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar: string;
-  senderLocation: string;
-  senderAge?: number;
-  receiverId: string;
-  receiverName: string;
-  receiverAvatar: string;
-  offeredSkill: string;
-  requestedSkill: string;
-  proposedTime: string;
-  status: "PENDING" | "ACCEPTED" | "DECLINED";
-  timestamp: string;
-  message: string;
-}
-
-export interface Participant {
-  id: string;
-  name: string;
-  avatar: string;
-  location?: string;
-  role: "mentor" | "learner" | "peer";
-}
-
-export interface SwapSession {
-  id: string;
-  proposalId?: string;
-  roomId: string;
-  topic: string;
-  offeredSkill: string;
-  requestedSkill: string;
-  participants: Participant[];
-  scheduledFor: string;
-  durationMinutes: number;
-  status: "UPCOMING" | "COMPLETED" | "CANCELLED";
-  notesMarkdown?: string;
-  createdAt: string;
-  completedAt?: string;
-}
-
-export interface SessionReview {
-  id: string;
-  sessionId: string;
-  authorId: string;
-  authorName: string;
-  authorAvatar: string;
-  authorLocation: string;
-  targetMemberId: string;
-  rating: number;
-  comment: string;
-  badges: string[];
-  date: string;
-}
-
-export interface PointsTransaction {
-  id: string;
-  amount: number;
-  type: "EARNED" | "SPENT" | "BONUS";
-  description: string;
-  timestamp: string;
-}
+export type {
+  SwapProposal,
+  Participant,
+  SwapSession,
+  SessionReview,
+  PointsTransaction,
+};
 
 interface SwapContextType {
   proposals: SwapProposal[];
@@ -98,143 +49,14 @@ interface SwapContextType {
   getSessionByRoomId: (roomId: string) => SwapSession | undefined;
 }
 
-// Fallback seed data ensures zero visual disruption on initial boot or cold-start
-const SEED_PROPOSALS: SwapProposal[] = [
-  {
-    id: "prop-101",
-    senderId: "member-2",
-    senderName: "Kavita Nair",
-    senderAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
-    senderLocation: "Panampilly Nagar, Kochi",
-    senderAge: 39,
-    receiverId: "member-1",
-    receiverName: "Pooja Sharma",
-    receiverAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-    offeredSkill: "Morning Hatha Yoga & Posture",
-    requestedSkill: "Watercolor Landscape Painting & Washes",
-    proposedTime: "Saturday at 10:00 AM IST",
-    status: "PENDING",
-    timestamp: "Today, 10:15 AM",
-    message: "Namaste Pooja! I've been admiring your watercolor sketches. I'd love to guide you through restorative Hatha Yoga stretches to release easel tension in exchange for a beginner sky wash demo!",
-  },
-  {
-    id: "prop-102",
-    senderId: "member-3",
-    senderName: "Ramesh Kulkarni",
-    senderAvatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256",
-    senderLocation: "Koregaon Park, Pune",
-    senderAge: 45,
-    receiverId: "member-1",
-    receiverName: "Pooja Sharma",
-    receiverAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-    offeredSkill: "Organic Terrace Vegetable Gardening",
-    requestedSkill: "Pencil Sketching & Botanical Illustration",
-    proposedTime: "Sunday at 11:30 AM IST",
-    status: "PENDING",
-    timestamp: "Yesterday, 4:30 PM",
-    message: "Hello! I can teach you home vermicomposting and container soil mix for balcony tomatoes if you can teach me how to sketch garden botanical leaves.",
-  },
-];
-
-const SEED_SESSIONS: SwapSession[] = [
-  {
-    id: "sess-201",
-    proposalId: "prop-prev-1",
-    roomId: "SB-482",
-    topic: "Watercolor Landscape Painting ⇄ Hatha Yoga Posture",
-    offeredSkill: "Morning Hatha Yoga & Posture",
-    requestedSkill: "Watercolor Landscape Painting & Washes",
-    participants: [
-      {
-        id: "member-1",
-        name: "Pooja Sharma",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-        location: "C-Scheme, Jaipur",
-        role: "peer",
-      },
-      {
-        id: "member-2",
-        name: "Kavita Nair",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256",
-        location: "Panampilly Nagar, Kochi",
-        role: "peer",
-      },
-    ],
-    scheduledFor: "Saturday at 10:00 AM IST",
-    durationMinutes: 60,
-    status: "UPCOMING",
-    createdAt: "2 days ago",
-  },
-  {
-    id: "sess-prev-1",
-    roomId: "SB-210",
-    topic: "Pencil Sketching Basics ⇄ Spoken English Storytelling",
-    offeredSkill: "Spoken English Fluency & Confidence",
-    requestedSkill: "Pencil Sketching & Botanical Illustration",
-    participants: [
-      {
-        id: "member-1",
-        name: "Pooja Sharma",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-        role: "peer",
-      },
-      {
-        id: "member-5",
-        name: "Harish Patel",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256",
-        location: "Navrangpura, Ahmedabad",
-        role: "peer",
-      },
-    ],
-    scheduledFor: "Oct 14, 2026",
-    durationMinutes: 45,
-    status: "COMPLETED",
-    createdAt: "Oct 12, 2026",
-    completedAt: "Oct 14, 2026",
-  },
-];
-
-const SEED_REVIEWS: SessionReview[] = [
-  {
-    id: "rev-301",
-    sessionId: "sess-prev-1",
-    authorId: "member-5",
-    authorName: "Harish Patel",
-    authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256",
-    authorLocation: "Navrangpura, Ahmedabad",
-    targetMemberId: "member-1",
-    rating: 5,
-    date: "Oct 14, 2026",
-    comment: "Pooja is a gifted artist and a patient instructor. My grandchildren were delighted by the botanical sketches we made together!",
-    badges: ["Deep Practical Experience", "Clear Explanations", "Warm & Respectful"],
-  },
-];
-
-const SEED_TRANSACTIONS: PointsTransaction[] = [
-  {
-    id: "tx-1",
-    amount: 50,
-    type: "BONUS",
-    description: "Welcome Community Bonus",
-    timestamp: "Oct 10, 2026",
-  },
-  {
-    id: "tx-2",
-    amount: 25,
-    type: "EARNED",
-    description: "Completed exchange with Harish Patel",
-    timestamp: "Oct 14, 2026",
-  },
-];
-
 const SwapContext = createContext<SwapContextType | undefined>(undefined);
 
 export function SwapProvider({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
-  const [proposals, setProposals] = useState<SwapProposal[]>(SEED_PROPOSALS);
-  const [sessions, setSessions] = useState<SwapSession[]>(SEED_SESSIONS);
-  const [reviews, setReviews] = useState<SessionReview[]>(SEED_REVIEWS);
-  const [transactions, setTransactions] = useState<PointsTransaction[]>(SEED_TRANSACTIONS);
+  const [proposals, setProposals] = useState<SwapProposal[]>([]);
+  const [sessions, setSessions] = useState<SwapSession[]>([]);
+  const [reviews, setReviews] = useState<SessionReview[]>([]);
+  const [transactions, setTransactions] = useState<PointsTransaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Initial Data Fetching from real Prisma Next.js API Route Handlers
@@ -242,7 +64,13 @@ export function SwapProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
 
     async function fetchInitialData() {
-      if (!currentUser) return;
+      if (!currentUser) {
+        setProposals([]);
+        setSessions([]);
+        setReviews([]);
+        setTransactions([]);
+        return;
+      }
       setIsLoading(true);
 
       try {
@@ -259,28 +87,28 @@ export function SwapProvider({ children }: { children: React.ReactNode }) {
 
         if (propRes.ok) {
           const propData = await propRes.json();
-          if (Array.isArray(propData) && propData.length > 0) {
+          if (Array.isArray(propData)) {
             setProposals(propData);
           }
         }
 
         if (sessRes.ok) {
           const sessData = await sessRes.json();
-          if (Array.isArray(sessData) && sessData.length > 0) {
+          if (Array.isArray(sessData)) {
             setSessions(sessData);
           }
         }
 
         if (revRes.ok) {
           const revData = await revRes.json();
-          if (Array.isArray(revData) && revData.length > 0) {
+          if (Array.isArray(revData)) {
             setReviews(revData);
           }
         }
 
         if (karmaRes.ok) {
           const karmaData = await karmaRes.json();
-          if (Array.isArray(karmaData?.transactions) && karmaData.transactions.length > 0) {
+          if (Array.isArray(karmaData?.transactions)) {
             setTransactions(karmaData.transactions);
           }
         }

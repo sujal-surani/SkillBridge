@@ -3,7 +3,6 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
-import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -26,87 +25,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const memberId = credentials.memberId as string | undefined;
         const email = credentials.email as string | undefined;
 
-        // 1. Look up by memberId (e.g. "member-1", "member-2", etc.)
-        let matchedMember = INITIAL_MEMBERS.find((m) => m.id === memberId);
-
-        // 2. Or look up by email
-        if (!matchedMember && email) {
-          matchedMember = INITIAL_MEMBERS.find(
-            (m) => m.email.toLowerCase() === email.toLowerCase()
-          );
-        }
-
-        // If matched to a predefined community persona, ensure they exist in PostgreSQL
-        if (matchedMember) {
-          try {
-            const upserted = await prisma.user.upsert({
-              where: { email: matchedMember.email },
-              update: {
-                fullName: matchedMember.fullName,
-                avatarUrl: matchedMember.avatarUrl,
-                image: matchedMember.avatarUrl,
-                occupationOrInterest: matchedMember.occupationOrInterest,
-                neighborhood: matchedMember.neighborhood,
-                city: matchedMember.city,
-                bio: matchedMember.bio,
-                skillPointsBalance: matchedMember.skillPointsBalance,
-              },
-              create: {
-                id: matchedMember.id,
-                email: matchedMember.email,
-                name: matchedMember.fullName,
-                fullName: matchedMember.fullName,
-                avatarUrl: matchedMember.avatarUrl,
-                image: matchedMember.avatarUrl,
-                occupationOrInterest: matchedMember.occupationOrInterest,
-                neighborhood: matchedMember.neighborhood,
-                city: matchedMember.city,
-                bio: matchedMember.bio,
-                modePreference: matchedMember.modePreference,
-                spokenLanguages: JSON.stringify(matchedMember.spokenLanguages),
-                availability: JSON.stringify(matchedMember.availability),
-                skillPointsBalance: matchedMember.skillPointsBalance,
-                averageRating: matchedMember.averageRating,
-                totalSessions: matchedMember.totalSessions,
-                role: "MEMBER",
-              },
-            });
-            return {
-              id: upserted.id,
-              name: upserted.fullName || upserted.name,
-              email: upserted.email,
-              image: upserted.avatarUrl || upserted.image,
-              role: upserted.role,
-            };
-          } catch (e) {
-            console.warn("Could not sync member with database, returning mock:", e);
-            return {
-              id: matchedMember.id,
-              name: matchedMember.fullName,
-              email: matchedMember.email,
-              image: matchedMember.avatarUrl,
-              role: "MEMBER",
-            };
-          }
-        }
-
-        // 3. Fallback: look up in database by email
-        if (email) {
+        // 1. Look up directly in database by memberId (e.g. "member-1", "member-2", etc.)
+        if (memberId) {
           try {
             const dbUser = await prisma.user.findUnique({
-              where: { email },
+              where: { id: memberId },
             });
             if (dbUser) {
               return {
                 id: dbUser.id,
-                name: dbUser.fullName || dbUser.name,
+                name: dbUser.fullName || dbUser.name || "Community Member",
                 email: dbUser.email,
                 image: dbUser.avatarUrl || dbUser.image,
                 role: dbUser.role,
               };
             }
           } catch (e) {
-            console.error("Database query failed:", e);
+            console.error("Authorize lookup by memberId failed:", e);
+          }
+        }
+
+        // 2. Look up directly in database by email
+        if (email) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email: email.toLowerCase() },
+            });
+            if (dbUser) {
+              return {
+                id: dbUser.id,
+                name: dbUser.fullName || dbUser.name || "Community Member",
+                email: dbUser.email,
+                image: dbUser.avatarUrl || dbUser.image,
+                role: dbUser.role,
+              };
+            }
+          } catch (e) {
+            console.error("Authorize lookup by email failed:", e);
           }
         }
 

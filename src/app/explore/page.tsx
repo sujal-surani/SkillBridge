@@ -20,14 +20,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useSwap } from "@/lib/context/SwapContext";
 
 export default function ExploreSkillsPage() {
   const { currentUser } = useAuth();
   const { createProposal } = useSwap();
-  const [members, setMembers] = useState<CommunityMember[]>(INITIAL_MEMBERS);
+  const [members, setMembers] = useState<CommunityMember[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPillar, setSelectedPillar] = useState("ALL");
   const [selectedMode, setSelectedMode] = useState("ALL");
@@ -38,6 +38,7 @@ export default function ExploreSkillsPage() {
   const [proposedSlot, setProposedSlot] = useState("Saturday at 10:00 AM IST");
   const [requestSent, setRequestSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLiveMembers() {
@@ -45,16 +46,13 @@ export default function ExploreSkillsPage() {
         const res = await fetch("/api/members");
         if (!res.ok) return;
         const dbMembers: CommunityMember[] = await res.json();
-        if (Array.isArray(dbMembers) && dbMembers.length > 0) {
-          const dbIds = new Set(dbMembers.map((m) => m.id));
-          const merged = [
-            ...dbMembers,
-            ...INITIAL_MEMBERS.filter((m) => !dbIds.has(m.id)),
-          ];
-          setMembers(merged);
+        if (Array.isArray(dbMembers)) {
+          setMembers(dbMembers);
         }
       } catch (err) {
         console.warn("Failed to fetch live members for explore:", err);
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchLiveMembers();

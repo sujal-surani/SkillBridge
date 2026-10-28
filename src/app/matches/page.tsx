@@ -19,13 +19,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useSwap } from "@/lib/context/SwapContext";
-import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 import { calculateMatchScore } from "@/lib/matching";
 
 export default function MyMatchesPage() {
   const { currentUser } = useAuth();
   const { createProposal } = useSwap();
-  const [members, setMembers] = useState<CommunityMember[]>(INITIAL_MEMBERS);
+  const [members, setMembers] = useState<CommunityMember[]>([]);
   const [minMatchScore, setMinMatchScore] = useState<number>(60);
   const [proposalMember, setProposalMember] = useState<CommunityMember | null>(null);
   const [proposedTime, setProposedTime] = useState("Saturday at 10:00 AM IST");
@@ -39,13 +39,8 @@ export default function MyMatchesPage() {
         const res = await fetch("/api/members");
         if (!res.ok) return;
         const dbMembers: CommunityMember[] = await res.json();
-        if (Array.isArray(dbMembers) && dbMembers.length > 0) {
-          const dbIds = new Set(dbMembers.map((m) => m.id));
-          const merged = [
-            ...dbMembers,
-            ...INITIAL_MEMBERS.filter((m) => !dbIds.has(m.id)),
-          ];
-          setMembers(merged);
+        if (Array.isArray(dbMembers)) {
+          setMembers(dbMembers);
         }
       } catch (err) {
         console.warn("Failed to fetch live members for matches:", err);

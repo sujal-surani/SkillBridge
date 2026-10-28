@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useSwap } from "@/lib/context/SwapContext";
 
@@ -36,10 +36,9 @@ export default function MemberProfilePage() {
   const { createProposal, reviews } = useSwap();
   const memberId = params?.id as string;
 
-  // Find member from community catalog with live DB fallback
-  const [member, setMember] = useState<CommunityMember>(
-    INITIAL_MEMBERS.find((m) => m.id === memberId) || INITIAL_MEMBERS[1]
-  );
+  // Find member from community catalog via live DB
+  const [member, setMember] = useState<CommunityMember | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadMember() {
@@ -51,19 +50,18 @@ export default function MemberProfilePage() {
         if (found) {
           setMember(found);
         }
-      } catch (err) {}
+      } catch (err) {
+      } finally {
+        setLoading(false);
+      }
     }
     loadMember();
   }, [memberId]);
 
   // Proposal Modal State
   const [proposalModalOpen, setProposalModalOpen] = useState(false);
-  const [selectedRequestedSkill, setSelectedRequestedSkill] = useState(
-    member.teachingSkills[0]?.name || ""
-  );
-  const [selectedOfferedSkill, setSelectedOfferedSkill] = useState(
-    currentUser?.teachingSkills[0]?.name || "Creative Arts"
-  );
+  const [selectedRequestedSkill, setSelectedRequestedSkill] = useState("");
+  const [selectedOfferedSkill, setSelectedOfferedSkill] = useState("");
   const [proposedSlot, setProposedSlot] = useState("Saturday at 10:00 AM IST");
   const [proposedNote, setProposedNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,8 +69,28 @@ export default function MemberProfilePage() {
 
   // Filter reviews for this member from SwapContext
   const memberReviews = reviews.filter(
-    (r) => r.targetMemberId === member.id || member.id === "member-2" || r.authorId === member.id
+    (r) => r.targetMemberId === member?.id || r.authorId === member?.id
   );
+
+  if (loading && !member) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-burgundy-600" />
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div className="mx-auto max-w-xl text-center py-24 px-4 space-y-4">
+        <h2 className="text-xl font-bold text-slate-heading">Community Member Not Found</h2>
+        <p className="text-xs text-slate-muted">The neighbor you are looking for is not registered or unavailable.</p>
+        <Link href="/explore">
+          <Button variant="primary">Return to Directory</Button>
+        </Link>
+      </div>
+    );
+  }
 
   const handleOpenProposal = () => {
     setSelectedRequestedSkill(member.teachingSkills[0]?.name || "");

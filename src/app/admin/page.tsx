@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   ShieldCheck, 
@@ -21,12 +21,26 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 
 export default function AdminPage() {
-  const [members, setMembers] = useState<CommunityMember[]>(INITIAL_MEMBERS);
+  const [members, setMembers] = useState<CommunityMember[]>([]);
   const [adminTab, setAdminTab] = useState<"analytics" | "users" | "skills" | "reports">("analytics");
   const [searchUser, setSearchUser] = useState("");
+
+  useEffect(() => {
+    async function fetchAdminMembers() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setMembers(data);
+        }
+      } catch (err) {}
+    }
+    fetchAdminMembers();
+  }, []);
 
   const [skillsTaxonomy, setSkillsTaxonomy] = useState([
     { name: "Watercolor Landscape Painting & Washes", pillar: "CREATIVE_PRACTICAL", status: "APPROVED", memberCount: 68 },

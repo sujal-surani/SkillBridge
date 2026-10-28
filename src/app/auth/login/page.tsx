@@ -8,28 +8,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/context/AuthContext";
-import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginAsMember } = useAuth();
+  const { login, loginAsMember } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      const found = INITIAL_MEMBERS.find((m) => m.email.toLowerCase() === email.toLowerCase());
-      if (found) {
-        loginAsMember(found.id);
+    try {
+      const ok = await login(email, password);
+      if (ok) {
+        router.push("/dashboard");
       } else {
-        loginAsMember("member-1");
+        await loginAsMember("member-1");
+        router.push("/dashboard");
       }
+    } finally {
       setIsLoading(false);
-      router.push("/dashboard");
-    }, 600);
+    }
   };
 
   const handleQuickLogin = (memberId: string) => {

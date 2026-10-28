@@ -32,7 +32,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useSwap } from "@/lib/context/SwapContext";
-import { INITIAL_MEMBERS } from "@/lib/data/mock-data";
+import { CommunityMember } from "@/lib/types";
 import { calculateMatchScore } from "@/lib/matching";
 
 export default function DashboardPage() {
@@ -41,6 +41,21 @@ export default function DashboardPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [mainTab, setMainTab] = useState<"requests" | "matches" | "community" | "skills">("requests");
   const [requestTab, setRequestTab] = useState<"incoming" | "outgoing">("incoming");
+  const [members, setMembers] = useState<CommunityMember[]>([]);
+
+  React.useEffect(() => {
+    async function loadMembers() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setMembers(data);
+        }
+      } catch (err) {}
+    }
+    loadMembers();
+  }, []);
 
   if (!currentUser) {
     return (
@@ -55,7 +70,7 @@ export default function DashboardPage() {
   }
 
   // Calculate algorithmic matches against other community candidates
-  const candidateMatches = INITIAL_MEMBERS
+  const candidateMatches = members
     .filter((m) => m.id !== currentUser.id)
     .map((candidate) => ({
       candidate,

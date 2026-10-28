@@ -5,6 +5,8 @@ import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/lib/context/AuthContext";
 import { SwapProvider } from "@/lib/context/SwapContext";
 import { Toaster } from "@/components/ui/toaster";
+import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: "SkillBridge — Share. Learn. Repeat.",
@@ -12,22 +14,26 @@ export const metadata: Metadata = {
     "Community-driven peer-to-peer knowledge exchange for everyone. Trade skills in drawing, health, cooking, gardening, languages, music, practical life crafts, and tech with your neighbors. No mandatory payment.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-cream-100 text-slate-body antialiased" suppressHydrationWarning>
-        <AuthProvider>
-          <SwapProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <Toaster />
-          </SwapProvider>
-        </AuthProvider>
+        <SessionProvider session={session}>
+          <AuthProvider>
+            <SwapProvider>
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <Toaster />
+            </SwapProvider>
+          </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );

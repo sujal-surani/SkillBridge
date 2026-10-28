@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { 
@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useSwap } from "@/lib/context/SwapContext";
+import { toast } from "sonner";
 
 export default function LearningRoomPage() {
   const params = useParams();
@@ -38,6 +39,10 @@ export default function LearningRoomPage() {
 
   // Check if session exists in SwapContext
   const activeSession = getSessionByRoomId(roomId);
+  const partner =
+    activeSession?.participants.find((p) => p.id !== currentUser?.id) ||
+    activeSession?.participants[0];
+  const partnerName = partner?.name || "Kavita Nair";
 
   // Media Controls State
   const [micOn, setMicOn] = useState(true);
@@ -48,15 +53,22 @@ export default function LearningRoomPage() {
   const [secondsLeft, setSecondsLeft] = useState(54 * 60 + 12); // 54:12 remaining
   const [timerRunning, setTimerRunning] = useState(true);
 
-  // Collaborative Notes: Watercolor & Yoga
+  // Collaborative Notes: auto-saved & debounced
   const [notes, setNotes] = useState(
-    "# SkillBridge Community Exchange: Watercolor Painting & Hatha Yoga\n\n**Mentors:** Pooja Sharma (34, Artist) & Kavita Nair (39, Yoga Coach)\n\n### 1. Watercolor Wash Fundamentals (Pooja):\n- **Paper Prep:** Pre-wet both sides of 300 GSM cold-pressed cotton paper with clean water.\n- **Wet-on-Wet Sky Wash:** Mix Ultramarine Blue with a touch of Burnt Sienna for natural cloudy tones.\n- **Pigment Control:** Dab excess water from your brush onto a dry cotton cloth before applying detail.\n\n### 2. Gentle Spine & Posture Routines (Kavita):\n- **Marjaryasana-Bitilasana (Cat-Cow):** Inhale arch spine, exhale round back gently (10 slow breaths).\n- **Thread-the-Needle Pose:** Release shoulder blade tension after hours at the drawing easel.\n- **Belly Breathing (Diaphragmatic):** Place hand on abdomen, 4 seconds in, 6 seconds out to calm the nervous system."
+    "# SkillBridge Community Exchange: Live Collaborative Notes\n\n**Mentors:** " +
+      (currentUser?.fullName || "Pooja Sharma") +
+      " & " +
+      partnerName +
+      "\n\n### 1. Skill Swap Fundamentals:\n- Key steps, preparation, and references discussed during this session.\n- Practical tips, ratios, formulas, or posture adjustments.\n\n### 2. Action Items & Practice:\n- Follow-up exercises to practice before the next community exchange."
   );
+  const [notesSaveStatus, setNotesSaveStatus] = useState<"saved" | "saving">("saved");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isInitialNotesLoaded = useRef(false);
 
   // In-room chat
   const [roomChat, setRoomChat] = useState([
-    { sender: "Kavita Nair", text: "Namaste Pooja! The video feed and audio are crystal clear.", time: "10:01 AM" },
-    { sender: "Pooja Sharma", text: "Namaste Kavitaji! I have my watercolor palette and mat ready.", time: "10:02 AM" },
+    { sender: partnerName, text: `Namaste! The video feed and audio are crystal clear in Room #${roomId}.`, time: "10:01 AM" },
+    { sender: currentUser?.fullName || "Pooja Sharma", text: "Namaste! I'm all set for our exchange session.", time: "10:02 AM" },
   ]);
   const [chatInput, setChatInput] = useState("");
 
@@ -69,11 +81,12 @@ export default function LearningRoomPage() {
     "Warm & Respectful",
   ]);
   const [reviewText, setReviewText] = useState(
-    "Kavita's spine stretches completely relieved the stiffness in my neck! A truly enriching and restorative community exchange."
+    `A truly enriching and restorative community exchange with ${partnerName}! Highly recommend swapping skills with them.`
   );
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
+  // 1. Live Countdown Timer
   useEffect(() => {
     let interval: any = null;
     if (timerRunning && secondsLeft > 0) {
@@ -83,6 +96,77 @@ export default function LearningRoomPage() {
     }
     return () => clearInterval(interval);
   }, [timerRunning, secondsLeft]);
+
+  // 2. Room Exit Synchronization: Short-polling every 3s to detect if partner ended session
+  useEffect(() => {
+    let isMounted = true;
+
+    async function pollRoomSession() {
+      try {
+        const res = await fetch(`/api/sessions?roomId=${encodeURIComponent(roomId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!isMounted) return;
+
+        // Populate initial saved notes from DB if available on mount
+        if (data.notesMarkdown && !isInitialNotesLoaded.current) {
+          setNotes(data.notesMarkdown);
+          isInitialNotesLoaded.current = true;
+        }
+
+        // If session was completed by the other user, pause timer and pop review modal
+        if (data.status === "COMPLETED") {
+          setTimerRunning(false);
+          setFeedbackModalOpen((wasOpen) => {
+            if (!wasOpen) {
+              toast.info("Session concluded", {
+                description: "Your exchange partner has ended the session. Please leave your review to collect your skill points!",
+              });
+              return true;
+            }
+            return wasOpen;
+          });
+        }
+      } catch (err) {
+        // Silently tolerate transient polling errors
+      }
+    }
+
+    pollRoomSession();
+    const pollInterval = setInterval(pollRoomSession, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, [roomId]);
+
+  // 3. Debounced Notes Auto-Save (1000ms debounce to PATCH /api/sessions)
+  const handleNotesChange = (val: string) => {
+    setNotes(val);
+    setNotesSaveStatus("saving");
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        await fetch("/api/sessions", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            roomId,
+            notesMarkdown: val,
+          }),
+        });
+        setNotesSaveStatus("saved");
+      } catch (e) {
+        console.warn("Notes auto-save fallback:", e);
+        setNotesSaveStatus("saved");
+      }
+    }, 1000);
+  };
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -279,13 +363,20 @@ export default function LearningRoomPage() {
                 <span className="text-xs font-bold text-slate-heading">
                   Shared Live Workspace Notes
                 </span>
-                <Badge variant="peach" className="text-[10px] py-0">Auto-saved</Badge>
+                <Badge
+                  variant="peach"
+                  className={`text-[10px] py-0 transition-all font-semibold ${
+                    notesSaveStatus === "saving" ? "animate-pulse bg-peach-300" : ""
+                  }`}
+                >
+                  {notesSaveStatus === "saving" ? "Saving..." : "Auto-saved"}
+                </Badge>
               </div>
             </div>
 
             <textarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => handleNotesChange(e.target.value)}
               className="flex-1 w-full mt-2 resize-none border-none p-2 text-xs font-mono text-slate-body focus:outline-none bg-cream-50/50 rounded-xl leading-relaxed"
               placeholder="Jot down notes, recipe measurements, chord charts, or yoga posture instructions together..."
             />
@@ -345,7 +436,7 @@ export default function LearningRoomPage() {
               </div>
               <h3 className="text-lg font-bold text-slate-heading">Complete Exchange & Leave Review</h3>
               <p className="text-xs text-slate-muted">
-                How was your session with Kavita Nair? Reviews build neighborhood trust.
+                How was your session with {partnerName}? Reviews build neighborhood trust.
               </p>
             </div>
 

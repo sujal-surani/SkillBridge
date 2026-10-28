@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SessionProvider, useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { INITIAL_MEMBERS, CommunityMember } from "@/lib/data/mock-data";
 
 interface AuthContextType {
@@ -21,7 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function AuthInternalProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const [currentUser, setCurrentUser] = useState<CommunityMember | null>(INITIAL_MEMBERS[0]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -33,7 +33,6 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
       const email = session.user.email?.toLowerCase();
       const id = session.user.id;
 
-      // Check if session belongs to one of the rich predefined community members
       const found = INITIAL_MEMBERS.find(
         (m) => m.id === id || (email && m.email.toLowerCase() === email)
       );
@@ -41,9 +40,7 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
       if (found) {
         setCurrentUser(found);
         setIsAdmin((session.user as any)?.role === "ADMIN");
-        localStorage.setItem("skillbridge_community_user", JSON.stringify(found));
       } else {
-        // Dynamic member profile (e.g. Google OAuth sign-in)
         const dynamicUser: CommunityMember = {
           id: session.user.id || `user-${Date.now()}`,
           fullName: session.user.name || "Community Member",
@@ -85,17 +82,10 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
         };
         setCurrentUser(dynamicUser);
         setIsAdmin((session.user as any)?.role === "ADMIN");
-        localStorage.setItem("skillbridge_community_user", JSON.stringify(dynamicUser));
       }
     } else if (status === "unauthenticated") {
-      // Check if local cache exists for demo continuity
-      const saved = localStorage.getItem("skillbridge_community_user");
-      if (saved) {
-        try {
-          setCurrentUser(JSON.parse(saved));
-        } catch {
-          setCurrentUser(INITIAL_MEMBERS[0]);
-        }
+      if (!currentUser) {
+        setCurrentUser(INITIAL_MEMBERS[0]);
       }
     }
   }, [session, status]);
@@ -105,7 +95,6 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
     if (found) {
       setCurrentUser(found);
       setIsAdmin(false);
-      localStorage.setItem("skillbridge_community_user", JSON.stringify(found));
     }
     try {
       await signIn("credentials", {
@@ -113,7 +102,7 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
         redirect: false,
       });
     } catch (e) {
-      console.warn("NextAuth signIn fallback to local state:", e);
+      console.warn("NextAuth signIn fallback:", e);
     }
   };
 
@@ -137,7 +126,6 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setCurrentUser(null);
     setIsAdmin(false);
-    localStorage.removeItem("skillbridge_community_user");
     try {
       await signOut({ redirect: false });
     } catch (e) {
@@ -150,23 +138,19 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
     learning: CommunityMember["learningSkills"]
   ) => {
     if (!currentUser) return;
-    const updated = {
+    setCurrentUser({
       ...currentUser,
       teachingSkills: teaching,
       learningSkills: learning,
-    };
-    setCurrentUser(updated);
-    localStorage.setItem("skillbridge_community_user", JSON.stringify(updated));
+    });
   };
 
   const addSkillPoints = (points: number) => {
     if (!currentUser) return;
-    const updated = {
+    setCurrentUser({
       ...currentUser,
       skillPointsBalance: currentUser.skillPointsBalance + points,
-    };
-    setCurrentUser(updated);
-    localStorage.setItem("skillbridge_community_user", JSON.stringify(updated));
+    });
   };
 
   return (
@@ -185,14 +169,6 @@ function AuthInternalProvider({ children }: { children: React.ReactNode }) {
     >
       {children}
     </AuthContext.Provider>
-  );
-}
-
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SessionProvider>
-      <AuthInternalProvider>{children}</AuthInternalProvider>
-    </SessionProvider>
   );
 }
 

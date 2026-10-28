@@ -246,6 +246,86 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
+      {/* Additional Confirmed Sessions (rendered if more than 1 scheduled exchange exists) */}
+      {upcomingSessions.length > 1 && (
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-burgundy-600" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-heading">
+                Upcoming Schedule ({upcomingSessions.length - 1} more)
+              </h3>
+            </div>
+            <Badge variant="outline" className="text-[10px] bg-white text-slate-muted border-[#EDE7DE]">
+              Chronological
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {upcomingSessions.slice(1).map((session, idx) => {
+              const partner =
+                session.participants.find((p) => p.id !== currentUser.id) ||
+                session.participants[0];
+              return (
+                <Card
+                  key={session.id || session.roomId || idx}
+                  className="p-5 border border-[#EDE7DE] shadow-subtle hover:border-burgundy-300 hover:shadow-card transition-all flex flex-col justify-between gap-4 group"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge variant="peach" className="text-[10px] px-2 py-0.5 font-bold">
+                        Exchange #{idx + 2}
+                      </Badge>
+                      <span className="text-[11px] font-semibold text-slate-muted flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-burgundy-600" />
+                        {session.durationMinutes} min
+                      </span>
+                    </div>
+
+                    <h4 className="text-sm font-bold text-slate-heading line-clamp-1 group-hover:text-burgundy-700 transition-colors">
+                      {session.topic}
+                    </h4>
+
+                    <div className="flex items-center gap-2.5 text-xs text-slate-muted">
+                      {partner?.avatar && (
+                        <img
+                          src={partner.avatar}
+                          alt={partner.name}
+                          className="h-6 w-6 rounded-full object-cover border border-peach-200"
+                        />
+                      )}
+                      <span>
+                        Partner: <strong className="text-slate-heading font-semibold">{partner?.name || "Neighbor"}</strong>
+                      </span>
+                    </div>
+
+                    <p className="text-xs font-medium text-slate-heading bg-cream-50 p-2.5 rounded-xl border border-cream-200/60 flex items-center gap-2">
+                      <Calendar className="h-3.5 w-3.5 text-burgundy-600 shrink-0" />
+                      <span>{session.scheduledFor}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-cream-200/60">
+                    <Link href="/chat" className="flex-1">
+                      <Button variant="secondary" size="sm" className="w-full text-xs gap-1.5 h-8">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        Chat
+                      </Button>
+                    </Link>
+                    <Link href={`/room/${session.roomId}`} className="flex-1">
+                      <Button variant="primary" size="sm" className="w-full text-xs font-bold gap-1.5 h-8 bg-burgundy-600 hover:bg-burgundy-700 shadow-xs">
+                        <Video className="h-3.5 w-3.5 text-peach-200" />
+                        Room #{session.roomId}
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* 3. Progressive Disclosure: Clean Tabbed Workspace */}
       <div className="space-y-6">
         {/* Navigation Tabs Bar */}

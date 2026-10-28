@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { 
@@ -36,8 +36,25 @@ export default function MemberProfilePage() {
   const { createProposal, reviews } = useSwap();
   const memberId = params?.id as string;
 
-  // Find member from community catalog
-  const member = INITIAL_MEMBERS.find((m) => m.id === memberId) || INITIAL_MEMBERS[1];
+  // Find member from community catalog with live DB fallback
+  const [member, setMember] = useState<CommunityMember>(
+    INITIAL_MEMBERS.find((m) => m.id === memberId) || INITIAL_MEMBERS[1]
+  );
+
+  useEffect(() => {
+    async function loadMember() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const dbMembers: CommunityMember[] = await res.json();
+        const found = dbMembers.find((m) => m.id === memberId);
+        if (found) {
+          setMember(found);
+        }
+      } catch (err) {}
+    }
+    loadMember();
+  }, [memberId]);
 
   // Proposal Modal State
   const [proposalModalOpen, setProposalModalOpen] = useState(false);

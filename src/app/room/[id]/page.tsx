@@ -42,6 +42,7 @@ export default function LearningRoomPage() {
   const partner =
     activeSession?.participants.find((p) => p.id !== currentUser?.id) ||
     activeSession?.participants[0];
+  const partnerId = partner?.id || "member-2";
   const partnerName = partner?.name || "Kavita Nair";
 
   // Media Controls State
@@ -141,7 +142,43 @@ export default function LearningRoomPage() {
     };
   }, [roomId]);
 
-  // 3. Debounced Notes Auto-Save (1000ms debounce to PATCH /api/sessions)
+  // 3. In-Room Chat Polling: Short-polling every 3s to sync messages with partner
+  useEffect(() => {
+    if (!partnerId) return;
+    let isMounted = true;
+
+    async function pollRoomChat() {
+      try {
+        const url = `/api/messages?peerId=${encodeURIComponent(partnerId)}${
+          currentUser?.id ? `&userId=${encodeURIComponent(currentUser.id)}` : ""
+        }`;
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setRoomChat(
+            data.map((m: any) => ({
+              sender: m.senderName || (m.isSelf ? currentUser?.fullName || "You" : partnerName),
+              text: m.text,
+              time: m.timestamp || "Just now",
+            }))
+          );
+        }
+      } catch (err) {
+        // Silently tolerate transient polling errors
+      }
+    }
+
+    pollRoomChat();
+    const chatInterval = setInterval(pollRoomChat, 3000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(chatInterval);
+    };
+  }, [partnerId, currentUser?.id, partnerName, currentUser?.fullName]);
+
+  // 4. Debounced Notes Auto-Save (1000ms debounce to PATCH /api/sessions)
   const handleNotesChange = (val: string) => {
     setNotes(val);
     setNotesSaveStatus("saving");
@@ -174,18 +211,40 @@ export default function LearningRoomPage() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSendRoomChat = (e: React.FormEvent) => {
+  const handleSendRoomChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
-    setRoomChat([
-      ...roomChat,
+
+    const messageText = chatInput.trim();
+    const senderName = currentUser?.fullName || "Pooja Sharma";
+    const senderId = currentUser?.id || "member-1";
+
+    // Optimistically update local room chat
+    setRoomChat((prev) => [
+      ...prev,
       {
-        sender: currentUser?.fullName || "Pooja Sharma",
-        text: chatInput.trim(),
-        time: "Just now",
+        sender: senderName,
+        text: messageText,
+        time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
       },
     ]);
     setChatInput("");
+
+    try {
+      await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          senderId,
+          senderName,
+          receiverId: partnerId,
+          receiverName: partnerName,
+          content: messageText,
+        }),
+      });
+    } catch (err) {
+      console.warn("Failed to dispatch in-room chat message:", err);
+    }
   };
 
   const toggleTag = (tag: string) => {

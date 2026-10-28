@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Sparkles, 
@@ -25,12 +25,34 @@ import { calculateMatchScore } from "@/lib/matching";
 export default function MyMatchesPage() {
   const { currentUser } = useAuth();
   const { createProposal } = useSwap();
+  const [members, setMembers] = useState<CommunityMember[]>(INITIAL_MEMBERS);
   const [minMatchScore, setMinMatchScore] = useState<number>(60);
   const [proposalMember, setProposalMember] = useState<CommunityMember | null>(null);
   const [proposedTime, setProposedTime] = useState("Saturday at 10:00 AM IST");
   const [proposalSent, setProposalSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [note, setNote] = useState("");
+
+  useEffect(() => {
+    async function fetchLiveMembers() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const dbMembers: CommunityMember[] = await res.json();
+        if (Array.isArray(dbMembers) && dbMembers.length > 0) {
+          const dbIds = new Set(dbMembers.map((m) => m.id));
+          const merged = [
+            ...dbMembers,
+            ...INITIAL_MEMBERS.filter((m) => !dbIds.has(m.id)),
+          ];
+          setMembers(merged);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch live members for matches:", err);
+      }
+    }
+    fetchLiveMembers();
+  }, []);
 
   if (!currentUser) {
     return (
@@ -45,7 +67,7 @@ export default function MyMatchesPage() {
   }
 
   // Calculate scores for all other candidates
-  const scoredCandidates = INITIAL_MEMBERS
+  const scoredCandidates = members
     .filter((m) => m.id !== currentUser.id)
     .map((candidate) => ({
       candidate,

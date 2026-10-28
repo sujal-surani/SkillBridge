@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Search, 
@@ -27,6 +27,7 @@ import { useSwap } from "@/lib/context/SwapContext";
 export default function ExploreSkillsPage() {
   const { currentUser } = useAuth();
   const { createProposal } = useSwap();
+  const [members, setMembers] = useState<CommunityMember[]>(INITIAL_MEMBERS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPillar, setSelectedPillar] = useState("ALL");
   const [selectedMode, setSelectedMode] = useState("ALL");
@@ -38,6 +39,27 @@ export default function ExploreSkillsPage() {
   const [requestSent, setRequestSent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    async function fetchLiveMembers() {
+      try {
+        const res = await fetch("/api/members");
+        if (!res.ok) return;
+        const dbMembers: CommunityMember[] = await res.json();
+        if (Array.isArray(dbMembers) && dbMembers.length > 0) {
+          const dbIds = new Set(dbMembers.map((m) => m.id));
+          const merged = [
+            ...dbMembers,
+            ...INITIAL_MEMBERS.filter((m) => !dbIds.has(m.id)),
+          ];
+          setMembers(merged);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch live members for explore:", err);
+      }
+    }
+    fetchLiveMembers();
+  }, []);
+
   const pillars = [
     { id: "ALL", label: "All Skills" },
     { id: "CREATIVE_PRACTICAL", label: "Gardening, Baking & Arts" },
@@ -46,7 +68,7 @@ export default function ExploreSkillsPage() {
     { id: "ACADEMIC_LANGUAGES", label: "Languages & Academic" },
   ];
 
-  const filteredMembers = INITIAL_MEMBERS.filter((m) => {
+  const filteredMembers = members.filter((m) => {
     const matchesSearch =
       m.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.city.toLowerCase().includes(searchQuery.toLowerCase()) ||

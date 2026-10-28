@@ -137,9 +137,33 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleFinish = () => {
-    updateUserSkills(teachingSkills, learningSkills);
-    router.push("/dashboard");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFinish = async () => {
+    setIsSubmitting(true);
+    try {
+      await fetch("/api/users/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser?.id,
+          bio,
+          modePreference: mode,
+          availability: selectedDays.map((day) => ({
+            day,
+            timeSlots: ["10:00 - 13:00", "16:00 - 19:00"],
+          })),
+          spokenLanguages: selectedLanguages,
+          teachingSkills,
+          learningSkills,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to persist onboarding profile:", err);
+    } finally {
+      updateUserSkills(teachingSkills, learningSkills);
+      router.push("/dashboard");
+    }
   };
 
   return (
@@ -486,10 +510,20 @@ export default function OnboardingPage() {
               type="button"
               variant="primary"
               onClick={handleFinish}
+              disabled={isSubmitting}
               className="gap-2 bg-burgundy-600"
             >
-              <Sparkles className="h-4 w-4 text-peach-200" />
-              Finish Setup & Open Community Dashboard
+              {isSubmitting ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Saving Profile...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-peach-200" />
+                  Finish Setup & Open Community Dashboard
+                </>
+              )}
             </Button>
           )}
         </div>

@@ -96,6 +96,8 @@ model User {
   communityQuestions   CommunityQuestion[]
   questionReplies      QuestionReply[]
   pointTransactions    PointTransaction[]
+  sentMessages         ChatMessage[]       @relation("SentMessages")
+  receivedMessages     ChatMessage[]       @relation("ReceivedMessages")
 }
 
 /// Skills catalog — the master list of all skills on the platform.
@@ -263,4 +265,23 @@ model QuestionReply {
 
   question   CommunityQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   author     User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+// ─── Direct In-App Chat ────────────────────────────────────────────────────────
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  senderId       String
+  receiverId     String
+  content        String   @db.Text
+  attachmentName String?
+  attachmentType String?
+  attachmentSize String?
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId])
 }

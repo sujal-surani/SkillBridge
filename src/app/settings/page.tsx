@@ -27,11 +27,32 @@ export default function SettingsPage() {
   const [allowPublicSearch, setAllowPublicSearch] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2000);
+    setSaving(true);
+    try {
+      const res = await fetch("/api/users/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser?.id,
+          fullName: name,
+          neighborhood,
+          city,
+        }),
+      });
+
+      if (res.ok) {
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error("Error saving profile settings:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = () => {
@@ -126,8 +147,23 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                <Button type="submit" variant="primary" size="sm" className="gap-1.5 mt-2">
-                  <Save className="h-4 w-4" /> Save Changes
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  className="gap-1.5 mt-2"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Changes
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>
